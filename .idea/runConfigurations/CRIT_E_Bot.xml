@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CRIT-E Bot" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="io.lightplugins.crit.master.LightMaster" />
+    <module name="critical-error-discord-bot" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
