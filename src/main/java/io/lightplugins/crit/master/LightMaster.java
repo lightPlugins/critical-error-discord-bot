@@ -6,6 +6,7 @@ import io.lightplugins.crit.modules.poll.LightPoll;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
+import io.lightplugins.crit.util.DatabaseConnection;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.interfaces.LightModule;
 import io.lightplugins.crit.util.models.DiscordShardBuilder;
@@ -31,6 +32,8 @@ public class LightMaster {
     private final ShardManager shardManager;
     private final Dotenv config;
     private final DefaultShardManagerBuilder defaultShardManagerBuilder;
+
+    public HikariDataSource ds;
 
     private Map<String, LightModule> modules;
 
@@ -58,6 +61,9 @@ public class LightMaster {
 
         LightPrinter.print("[4/5] Connect to Database ...");
         // DATABASE
+        DatabaseConnection dbConnection = new DatabaseConnection();
+        dbConnection.connectToDatabaseViaSQLite();
+        this.ds = dbConnection.getDataSource();
         LightPrinter.print("[4/5] Connect to Database successful.");
 
 
@@ -106,11 +112,6 @@ public class LightMaster {
 
     private void loadModule(LightModule lightModule, boolean enable) {
 
-        if (lightModule.enabled()) {
-            LightPrinter.printError("Module " + lightModule.getName() + " already enabled.");
-            return;
-        }
-
         if (enable) {
             lightModule.enable();
             LightPrinter.print("Module " + lightModule.getName() + " enabled.");
@@ -119,11 +120,6 @@ public class LightMaster {
     }
 
     private void unloadModule(LightModule lightModule) {
-
-        if (!lightModule.enabled()) {
-            LightPrinter.printError("Module " + lightModule.getName() + " already disabled.");
-            return;
-        }
 
         lightModule.disable();
         LightPrinter.print("Module " + lightModule.getName() + " disabled.");
@@ -166,11 +162,15 @@ public class LightMaster {
         return prefix;
     }
 
+    public HikariDataSource getDataSource() {
+        return ds;
+    }
+
     private void listenForConsoleInput() {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String input = scanner.nextLine();
-            if ("/stop".equalsIgnoreCase(input)) {
+            if ("stop".equalsIgnoreCase(input)) {
                 shutdown();
                 break;
             }
@@ -181,13 +181,16 @@ public class LightMaster {
         // Perform any necessary cleanup here
         if (shardManager != null) {
 
+            // unload modules on Shutdown init
             for(LightModule module : modules.values()) {
                 unloadModule(module);
             }
 
             LightPrinter.print("Init Bot shut down ...");
+            // final, shutdown the shard manager and exit
             shardManager.shutdown();
             LightPrinter.print("Shut down successful.");
+
         }
         System.exit(0);
     }

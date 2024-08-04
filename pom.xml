@@ -29,7 +29,13 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.46.0.1</version>
         </dependency>
 
         <dependency>
@@ -68,8 +74,17 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version> <!-- Aktualisiere auf die neueste Version -->
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.5.1</version> <!-- Aktualisiere auf die neueste Version -->
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -77,6 +92,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>io.lightplugins.crit.util.hikari</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <outputFile>C:/Users/philipp/Desktop/discord-bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>
                             <filters>
                                 <filter>
@@ -97,21 +118,12 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>9</source>
-                    <target>9</target>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
     <properties>
-        <maven.compiler.source>20</maven.compiler.source>
-        <maven.compiler.target>20</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
 </project>
