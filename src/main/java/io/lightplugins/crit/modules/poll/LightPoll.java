@@ -21,7 +21,7 @@ public class LightPoll implements LightModule {
 
     @Override
     public boolean enabled() {
-        return false;
+        return true;
     }
 
     @Override

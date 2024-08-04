@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.sharding.ShardManager;
 import javax.security.auth.login.LoginException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class LightMaster {
 
@@ -91,6 +92,8 @@ public class LightMaster {
         LightPrinter.print(" ");
         LightPrinter.print(" ");
 
+        // Start console listener in a new thread
+        new Thread(this::listenForConsoleInput).start();
     }
 
     private void loadModules() {
@@ -115,17 +118,15 @@ public class LightMaster {
 
     }
 
-    private void unloadModule(LightModule lightModule, boolean disable) {
+    private void unloadModule(LightModule lightModule) {
 
         if (!lightModule.enabled()) {
             LightPrinter.printError("Module " + lightModule.getName() + " already disabled.");
             return;
         }
 
-        if (disable) {
-            lightModule.disable();
-            LightPrinter.print("Module " + lightModule.getName() + " disabled.");
-        }
+        lightModule.disable();
+        LightPrinter.print("Module " + lightModule.getName() + " disabled.");
 
     }
 
@@ -165,12 +166,37 @@ public class LightMaster {
         return prefix;
     }
 
+    private void listenForConsoleInput() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String input = scanner.nextLine();
+            if ("/stop".equalsIgnoreCase(input)) {
+                shutdown();
+                break;
+            }
+        }
+    }
+
+    private void shutdown() {
+        // Perform any necessary cleanup here
+        if (shardManager != null) {
+
+            for(LightModule module : modules.values()) {
+                unloadModule(module);
+            }
+
+            LightPrinter.print("Init Bot shut down ...");
+            shardManager.shutdown();
+            LightPrinter.print("Shut down successful.");
+        }
+        System.exit(0);
+    }
+
     public static void main(String[] args) {
         try {
             instance = new LightMaster();
         } catch (LoginException e) {
             throw new RuntimeException("Failed to login to Discord. Please check your token.");
-
         }
     }
 }

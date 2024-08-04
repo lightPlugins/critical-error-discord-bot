@@ -5,11 +5,15 @@ import io.lightplugins.crit.modules.roles.commands.GiveMember;
 import io.lightplugins.crit.modules.roles.commands.RemoveMember;
 import io.lightplugins.crit.modules.roles.listener.RegisterCommands;
 import io.lightplugins.crit.util.interfaces.LightModule;
+import io.lightplugins.crit.util.manager.FileManager;
 
 public class LightRoles implements LightModule {
 
     @Override
     public void enable() {
+
+        FileManager config = new FileManager("config.yml");
+        String host = config.getString("database.host");
 
         // register commands
         LightMaster.instance.getShardManager().addEventListener(
@@ -32,7 +36,7 @@ public class LightRoles implements LightModule {
 
     @Override
     public boolean enabled() {
-        return false;
+        return true;
     }
 
     @Override
