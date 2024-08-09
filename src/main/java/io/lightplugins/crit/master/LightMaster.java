@@ -3,6 +3,7 @@ package io.lightplugins.crit.master;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.lightplugins.crit.modules.poll.LightPoll;
+import io.lightplugins.crit.modules.profiles.LightProfile;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
@@ -35,16 +36,19 @@ public class LightMaster {
     public LightReaction lightReaction;
     public LightVerify lightVerify;
     public LightRoles lightRoles;
+    public LightProfile lightProfile;
 
     @Getter
     private final ShardManager shardManager;
     @Getter
     private final Dotenv config;
+    @Getter
     private final FileManager databaseCredentials;
     @Getter
     private final DefaultShardManagerBuilder defaultShardManagerBuilder;
 
     public HikariDataSource ds;
+    @Getter
     private SQLDatabase database;
 
     @Getter
@@ -124,6 +128,7 @@ public class LightMaster {
         this.loadModule(lightReaction, true);
         this.loadModule(lightVerify, true);
         this.loadModule(lightRoles, true);
+        this.loadModule(lightProfile, true);
     }
 
     private void loadModule(LightModule lightModule, boolean enable) {
@@ -150,11 +155,13 @@ public class LightMaster {
         this.lightReaction = new LightReaction();
         this.lightVerify = new LightVerify();
         this.lightRoles = new LightRoles();
+        this.lightProfile = new LightProfile();
 
         this.modules.put(this.lightPoll.getName(), lightPoll);
         this.modules.put(this.lightReaction.getName(), lightReaction);
         this.modules.put(this.lightVerify.getName(), lightVerify);
         this.modules.put(this.lightRoles.getName(), lightRoles);
+        this.modules.put(this.lightProfile.getName(), lightProfile);
 
     }
 

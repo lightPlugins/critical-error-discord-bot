@@ -21,18 +21,24 @@ public class MySQLDatabase extends PooledDatabase {
 
     @Override
     public void connect() {
-        final HikariConfig hikari = new HikariConfig();
+        try {
+            final HikariConfig hikari = new HikariConfig();
+            Class.forName("org.mariadb.jdbc.Driver");
+            hikari.setPoolName("light-" + POOL_COUNTER.getAndIncrement());
 
-        hikari.setPoolName("light-" + POOL_COUNTER.getAndIncrement());
+            this.applyCredentials(hikari, credentials, connectionProperties);
+            this.applyConnectionProperties(hikari, connectionProperties);
+            this.addDefaultDataSourceProperties(hikari);
+            this.hikari = new HikariDataSource(hikari);
 
-        this.applyCredentials(hikari, credentials, connectionProperties);
-        this.applyConnectionProperties(hikari, connectionProperties);
-        this.addDefaultDataSourceProperties(hikari);
-        this.hikari = new HikariDataSource(hikari);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Failed to load MariaDB driver", e);
+        }
+
     }
 
     private void applyCredentials(HikariConfig hikari, DatabaseCredentials credentials, ConnectionProperties connectionProperties) {
-        hikari.setJdbcUrl("jdbc:mysql://" + credentials.getHost() + ":" + credentials.getPort() + "/" + credentials.getDatabaseName() + "?characterEncoding=" + connectionProperties.getCharacterEncoding());
+        hikari.setJdbcUrl("jdbc:mariadb://" + credentials.getHost() + ":" + credentials.getPort() + "/" + credentials.getDatabaseName() + "?characterEncoding=" + connectionProperties.getCharacterEncoding());
         hikari.setUsername(credentials.getUserName());
         hikari.setPassword(credentials.getPassword());
     }

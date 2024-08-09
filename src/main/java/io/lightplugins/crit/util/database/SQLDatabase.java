@@ -4,15 +4,17 @@ import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.DatabaseTypes;
 
+import java.sql.*;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class SQLDatabase {
 
     protected final LightMaster plugin;
+    private static final ExecutorService dbExecutor = Executors.newFixedThreadPool(10);
+
 
     SQLDatabase(LightMaster plugin) {
         this.plugin = plugin;
@@ -31,10 +33,19 @@ public abstract class SQLDatabase {
             } catch (SQLException e) {
                 throw new RuntimeException("Could not execute SQL statement", e);
             }
-        });
+        }, dbExecutor);
     }
 
-    public <T> CompletableFuture<T> getObjectFromDatabaseAsync(String sql, Class<T> type, Object... replacements) {
+    public boolean insertIntoDatabase(String sql, Object... replacements) {
+        try (Connection c = getConnection(); PreparedStatement statement = prepareStatement(c, sql, replacements)) {
+            int affectedRows = statement.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not execute SQL statement", e);
+        }
+    }
+
+    public <T> CompletableFuture<T> queryDatabaseAsync(String sql, Class<T> type, Object... replacements) {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection c = getConnection();
                  PreparedStatement statement = prepareStatement(c, sql, replacements);
@@ -47,29 +58,43 @@ public abstract class SQLDatabase {
             } catch (SQLException e) {
                 throw new RuntimeException("Could not execute SQL statement", e);
             }
-        });
+        }, dbExecutor);
     }
 
-    private PreparedStatement prepareStatement(Connection connection, String sql, Object... replacements) {
+    private PreparedStatement prepareStatement(Connection connection, String sql, Object... replacements) throws SQLException {
         PreparedStatement statement;
         try {
             statement = connection.prepareStatement(sql);
             this.replaceQueryParameters(statement,replacements);
             return statement;
         } catch (SQLException e) {
-            throw new RuntimeException("Could not prepare SQL statement", e);
+            LightPrinter.printError("Could not prepare SQL statement: " + sql);
+            e.printStackTrace();
+            throw new SQLException("Could not prepare SQL statement", e);
+        }
+    }
+
+    public void createTable(String tableName, String tableDefinition) {
+        String sql = "CREATE TABLE IF NOT EXISTS " + tableName + " (" + tableDefinition + ")";
+        try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.execute();
+            LightPrinter.print("[DATABASE] Table " + tableName + " created or already exists.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error creating table " + tableName, e);
         }
     }
 
     public CompletableFuture<Integer> executeSqlFuture(String sql, Object... replacements) {
 
         CompletableFuture<Integer> future = new CompletableFuture<>();
+
         CompletableFuture.runAsync(() -> {
-            try (Connection c = getConnection();
-                 PreparedStatement statement = prepareStatement(c, sql, replacements)) {
+            try (Connection c = getConnection(); PreparedStatement statement = prepareStatement(c, sql, replacements)) {
                 int affectedLines = statement.executeUpdate();
                 future.complete(affectedLines);
             } catch (SQLException e) {
+                e.printStackTrace();
                 throw new RuntimeException("Could not execute SQL statement", e);
             }
         });
@@ -85,6 +110,7 @@ public abstract class SQLDatabase {
                     statement.setObject(position, value);
                 } catch (SQLException e) {
                     LightPrinter.printError("Unable to set query parameter at position " + position + " to " + value + " for query: " + statement);
+                    e.printStackTrace();
                     throw new RuntimeException("Failed to set query parameter", e);
                 }
             }

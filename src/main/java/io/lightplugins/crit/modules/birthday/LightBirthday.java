@@ -1,10 +1,13 @@
 package io.lightplugins.crit.modules.birthday;
 
+import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.interfaces.LightModule;
 
 public class LightBirthday implements LightModule {
     @Override
     public void enable() {
+
+
 
     }
 
