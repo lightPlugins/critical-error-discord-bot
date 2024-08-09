@@ -1,0 +1,19 @@
+storage:
+  # if disabled, the plugin will automatically use sqlite for single server setup.
+  type: sqlite
+  host: 127.0.0.1
+  port: 3306
+  database: databaseName
+  username: username
+  password: YourSecretPassword
+  advanced:
+    # Don't change any values here if you don't know what you're doing.
+    connection-timeout: 60000
+    idle-timeout: 600000
+    keep-alive-time: 0
+    max-life-time: 1800000
+    minimum-idle: 10
+    maximum-pool-size: 10
+    leak-detection-threshold: 0
+    connection-test-query: "SELECT 1"
+    character-encoding: "utf8"

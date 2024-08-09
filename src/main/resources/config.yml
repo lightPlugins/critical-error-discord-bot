@@ -1,2 +1,14 @@
 database:
   host: localhost
+  database: crite
+  user: crite
+  password: pAssWoRd
+  port: 3306
+  ssl: false
+  advanced:
+    useServerPrepStmts: true
+    cachePrepStmts: true
+    prepStmtCacheSize: 250
+    prepStmtCacheSqlLimit: 2048
+    connectionPoolSize: 10
+

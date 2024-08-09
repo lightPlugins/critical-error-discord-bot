@@ -10,7 +10,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +22,7 @@ public class FileManager {
     public FileManager(String configPath) {
         this.configPath = configPath;
         DumperOptions dumperOptions = new DumperOptions();
+        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); // Ensure block style
         LoaderOptions loaderOptions = new LoaderOptions();
         this.yaml = new Yaml(new Constructor(Map.class, loaderOptions), new Representer(dumperOptions), dumperOptions);
         copyConfigFileFromResources();
@@ -31,9 +31,9 @@ public class FileManager {
 
     private void copyConfigFileFromResources() {
         if (!Files.exists(Paths.get(configPath))) {
-            try (InputStream resourceStream = getClass().getClassLoader().getResourceAsStream("config.yml")) {
+            try (InputStream resourceStream = getClass().getClassLoader().getResourceAsStream(configPath)) {
                 if (resourceStream == null) {
-                    throw new RuntimeException("Resource config.yml not found");
+                    throw new RuntimeException("Resource " + configPath + " not found");
                 }
                 Files.copy(resourceStream, Paths.get(configPath), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
@@ -45,6 +45,7 @@ public class FileManager {
     private void loadConfig() {
         try (InputStream in = Files.newInputStream(Paths.get(configPath))) {
             config = yaml.load(in);
+            System.out.println("Config loaded: " + config); // Debug statement
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -62,45 +63,74 @@ public class FileManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private <T> T getValue(String key, Class<T> type) {
+        String[] keys = key.split("\\.");
+        Map<String, Object> currentMap = config;
+        for (int i = 0; i < keys.length - 1; i++) {
+            currentMap = (Map<String, Object>) currentMap.get(keys[i]);
+            if (currentMap == null) {
+                return null;
+            }
+        }
+        return (T) currentMap.get(keys[keys.length - 1]);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void setValue(String key, T value) {
+        String[] keys = key.split("\\.");
+        Map<String, Object> currentMap = config;
+        for (int i = 0; i < keys.length - 1; i++) {
+            currentMap = (Map<String, Object>) currentMap.get(keys[i]);
+            if (currentMap == null) {
+                throw new RuntimeException("Configuration key '" + key + "' is missing or null");
+            }
+        }
+        currentMap.put(keys[keys.length - 1], value);
+        saveConfig();
+    }
+
     public String getString(String key) {
-        return (String) config.get(key);
+        return getValue(key, String.class);
     }
 
     public void setString(String key, String value) {
-        config.put(key, value);
-        saveConfig();
+        setValue(key, value);
+    }
+
+    public long getLong(String key) {
+        return getValue(key, Long.class);
+    }
+
+    public void setLong(String key, long value) {
+        setValue(key, value);
     }
 
     public int getInt(String key) {
-        return (Integer) config.get(key);
+        return getValue(key, Integer.class);
     }
 
     public void setInt(String key, int value) {
-        config.put(key, value);
-        saveConfig();
+        setValue(key, value);
     }
 
     public boolean getBoolean(String key) {
-        return (Boolean) config.get(key);
+        return getValue(key, Boolean.class);
     }
 
     public void setBoolean(String key, boolean value) {
-        config.put(key, value);
-        saveConfig();
+        setValue(key, value);
     }
 
-    @SuppressWarnings("unchecked")
     public List<String> getStringList(String key) {
-        return (List<String>) config.get(key);
+        return getValue(key, List.class);
     }
 
     public void setStringList(String key, List<String> value) {
-        config.put(key, value);
-        saveConfig();
+        setValue(key, value);
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, Object> getSection(String key) {
-        return (Map<String, Object>) config.get(key);
+        return getValue(key, Map.class);
     }
 }

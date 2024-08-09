@@ -6,14 +6,21 @@ import io.lightplugins.crit.modules.poll.LightPoll;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
-import io.lightplugins.crit.util.DatabaseConnection;
 import io.lightplugins.crit.util.LightPrinter;
+import io.lightplugins.crit.util.database.SQLDatabase;
+import io.lightplugins.crit.util.database.impl.MySQLDatabase;
+import io.lightplugins.crit.util.database.impl.SQLiteDatabase;
+import io.lightplugins.crit.util.database.model.ConnectionProperties;
+import io.lightplugins.crit.util.database.model.DatabaseCredentials;
 import io.lightplugins.crit.util.interfaces.LightModule;
+import io.lightplugins.crit.util.manager.FileManager;
 import io.lightplugins.crit.util.models.DiscordShardBuilder;
+import lombok.Getter;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
 import javax.security.auth.login.LoginException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -29,14 +36,21 @@ public class LightMaster {
     public LightVerify lightVerify;
     public LightRoles lightRoles;
 
+    @Getter
     private final ShardManager shardManager;
+    @Getter
     private final Dotenv config;
+    private final FileManager databaseCredentials;
+    @Getter
     private final DefaultShardManagerBuilder defaultShardManagerBuilder;
 
     public HikariDataSource ds;
+    private SQLDatabase database;
 
+    @Getter
     private Map<String, LightModule> modules;
 
+    @Getter
     private static final String prefix = "[CRIT-E] ";
 
     public static HikariDataSource dataSource;
@@ -47,8 +61,12 @@ public class LightMaster {
 
         LightPrinter.print("Bot is starting ...");
 
-        LightPrinter.print("[1/5] Loading env file ...");
+        LightPrinter.print("[1/5] Loading env file and generate configs ...");
         this.config = Dotenv.configure().load();
+        this.databaseCredentials = new FileManager("database.yml");
+        int test = databaseCredentials.getInt("storage.advanced.connection-timeout");
+        LightPrinter.print("Test: " + test);
+        databaseCredentials.setInt("storage.advanced.connection-timeout", 123456);
         LightPrinter.print("[1/5] Loading env file successful.");
 
         LightPrinter.print("[2/5] Loading default shard manager builder ...");
@@ -61,9 +79,7 @@ public class LightMaster {
 
         LightPrinter.print("[4/5] Connect to Database ...");
         // DATABASE
-        DatabaseConnection dbConnection = new DatabaseConnection();
-        dbConnection.connectToDatabaseViaSQLite();
-        this.ds = dbConnection.getDataSource();
+        this.initDatabase();
         LightPrinter.print("[4/5] Connect to Database successful.");
 
 
@@ -142,26 +158,6 @@ public class LightMaster {
 
     }
 
-    public ShardManager getShardManager() {
-        return shardManager;
-    }
-
-    public DefaultShardManagerBuilder getDefaultShardManagerBuilder() {
-        return defaultShardManagerBuilder;
-    }
-
-    public Dotenv getConfig() {
-        return config;
-    }
-
-    public Map<String, LightModule> getModules() {
-        return modules;
-    }
-
-    public static String getPrefix() {
-        return prefix;
-    }
-
     public HikariDataSource getDataSource() {
         return ds;
     }
@@ -175,6 +171,31 @@ public class LightMaster {
                 break;
             }
         }
+    }
+
+    private boolean initDatabase() {
+        try {
+            String databaseType = databaseCredentials.getString("storage.type");
+            ConnectionProperties connectionProperties = ConnectionProperties.fromConfig(databaseCredentials);
+
+            if ("sqlite".equalsIgnoreCase(databaseType)) {
+                this.database = new SQLiteDatabase(this, connectionProperties);
+                LightPrinter.print("Using SQLite (local) database.");
+            } else if ("mysql".equalsIgnoreCase(databaseType)) {
+                DatabaseCredentials credentials = DatabaseCredentials.fromConfig(databaseCredentials);
+                this.database = new MySQLDatabase(this, credentials, connectionProperties);
+                LightPrinter.print("Using MySQL (remote) database.");
+            } else {
+                LightPrinter.printError("Error! Unknown database type: " + databaseType + ". Disabling plugin.");
+                throw new SQLException("Unknown database type: " + databaseType);
+            }
+
+            this.database.connect();
+        } catch (Exception e) {
+            LightPrinter.printError("Error while connecting to database. The Bot will not work without a database connection.");
+            throw new RuntimeException("Error while connecting to database.", e);
+        }
+        return true;
     }
 
     private void shutdown() {
