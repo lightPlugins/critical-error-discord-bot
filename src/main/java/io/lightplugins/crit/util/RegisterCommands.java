@@ -1,7 +1,6 @@
-package io.lightplugins.crit.modules.roles.listener;
+package io.lightplugins.crit.util;
 
 import io.lightplugins.crit.master.LightMaster;
-import io.lightplugins.crit.util.LightPrinter;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -19,22 +18,52 @@ public class RegisterCommands extends ListenerAdapter {
 
     public void onGuildReady(@NotNull GuildReadyEvent event) {
 
-        // options from the target command
+        // Avoid duplicated command entry error on internet reconnection
+        if(LightMaster.instance.isStartupComplete()) {
+            return;
+        }
+
+        /*
+         *  Register OptionData for any commands that need them
+         *
+         */
+
+        // options from /addbirthday
+        OptionData addBirthday = new OptionData(OptionType.STRING, "birthday",
+                "Dein Geburtstag. Zum Beispiel 02.03.2000", true);
+        // options from /addmember
         OptionData giveMemberOption = new OptionData(OptionType.STRING, "user",
                 "Discord @ Tag des Users", true);
+        // options from /removemember
         OptionData removeMemberOption = new OptionData(OptionType.STRING, "user",
                 "Discord @ Tag des Users", true);
 
-        // register command and add options
+
+
+        /*
+         *  Add all commands to the commandData list
+         *
+         */
+
+        // add command /addbirthday to the list
+        commandData.add(Commands.slash("addbirthday",
+                "Trägt dich in die Geburtstagsliste ein").addOptions(addBirthday));
+        // add command /addmember to the list
         commandData.add(Commands.slash("addmember",
                 "Gibt einem User die Member Rolle").addOptions(giveMemberOption));
+        // add command /removemember to the list
         commandData.add(Commands.slash("removemember",
                 "Gibt einem User die Member Rolle").addOptions(removeMemberOption));
 
+
+        /*
+         *  Finally, register the commands to the guild
+         *
+         */
+
         event.getGuild().updateCommands().addCommands(commandData).queue(
-                callback -> LightPrinter.print("Successfully registered commands from module 'LightRoles'"));
+                callback -> LightPrinter.print("Successfully registered all the commands"));
 
-
+        LightMaster.instance.setStartupComplete(true);
     }
-
 }

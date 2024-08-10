@@ -61,6 +61,20 @@ public abstract class SQLDatabase {
         }, dbExecutor);
     }
 
+    public <T> T queryDatabase(String sql, Class<T> type, Object... replacements) {
+        try (Connection c = getConnection();
+             PreparedStatement statement = prepareStatement(c, sql, replacements);
+             ResultSet rs = statement.executeQuery()) {
+            if (rs.next()) {
+                return type.cast(rs.getObject(1)); // Assuming the value is in the first column
+            } else {
+                throw new RuntimeException("No result found for the query");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not execute SQL statement", e);
+        }
+    }
+
     private PreparedStatement prepareStatement(Connection connection, String sql, Object... replacements) throws SQLException {
         PreparedStatement statement;
         try {

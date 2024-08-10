@@ -45,7 +45,6 @@ public class FileManager {
     private void loadConfig() {
         try (InputStream in = Files.newInputStream(Paths.get(configPath))) {
             config = yaml.load(in);
-            System.out.println("Config loaded: " + config); // Debug statement
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

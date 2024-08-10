@@ -1,13 +1,10 @@
-package io.lightplugins.crit.modules.birthday;
+package io.lightplugins.crit.modules.channel;
 
-import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.interfaces.LightModule;
 
-public class LightBirthday implements LightModule {
+public class LightChannel implements LightModule {
     @Override
     public void enable() {
-
-
 
     }
 
@@ -23,11 +20,11 @@ public class LightBirthday implements LightModule {
 
     @Override
     public boolean enabled() {
-        return true;
+        return false;
     }
 
     @Override
     public String getName() {
-        return "LightBirthday";
+        return "LightChannel";
     }
 }

@@ -2,12 +2,14 @@ package io.lightplugins.crit.master;
 
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.lightplugins.crit.modules.channel.LightChannel;
 import io.lightplugins.crit.modules.poll.LightPoll;
 import io.lightplugins.crit.modules.profiles.LightProfile;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
 import io.lightplugins.crit.util.LightPrinter;
+import io.lightplugins.crit.util.RegisterCommands;
 import io.lightplugins.crit.util.database.SQLDatabase;
 import io.lightplugins.crit.util.database.impl.MySQLDatabase;
 import io.lightplugins.crit.util.database.impl.SQLiteDatabase;
@@ -17,6 +19,7 @@ import io.lightplugins.crit.util.interfaces.LightModule;
 import io.lightplugins.crit.util.manager.FileManager;
 import io.lightplugins.crit.util.models.DiscordShardBuilder;
 import lombok.Getter;
+import lombok.Setter;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
@@ -37,6 +40,7 @@ public class LightMaster {
     public LightVerify lightVerify;
     public LightRoles lightRoles;
     public LightProfile lightProfile;
+    public LightChannel lightChannel;
 
     @Getter
     private final ShardManager shardManager;
@@ -46,6 +50,9 @@ public class LightMaster {
     private final FileManager databaseCredentials;
     @Getter
     private final DefaultShardManagerBuilder defaultShardManagerBuilder;
+    @Getter
+    @Setter
+    private boolean startupComplete;
 
     public HikariDataSource ds;
     @Getter
@@ -60,7 +67,7 @@ public class LightMaster {
     public static HikariDataSource dataSource;
 
     public LightMaster() throws LoginException {
-
+        startupComplete = false;
         long start = System.currentTimeMillis();
 
         LightPrinter.print("Bot is starting ...");
@@ -79,6 +86,7 @@ public class LightMaster {
 
         LightPrinter.print("[3/5] Building shard manager ...");
         shardManager = defaultShardManagerBuilder.build();
+        shardManager.addEventListener(new RegisterCommands());
         LightPrinter.print("[3/5] Building shard manager successful.");
 
         LightPrinter.print("[4/5] Connect to Database ...");
@@ -129,6 +137,7 @@ public class LightMaster {
         this.loadModule(lightVerify, true);
         this.loadModule(lightRoles, true);
         this.loadModule(lightProfile, true);
+        this.loadModule(lightChannel, true);
     }
 
     private void loadModule(LightModule lightModule, boolean enable) {
@@ -156,12 +165,14 @@ public class LightMaster {
         this.lightVerify = new LightVerify();
         this.lightRoles = new LightRoles();
         this.lightProfile = new LightProfile();
+        this.lightChannel = new LightChannel();
 
         this.modules.put(this.lightPoll.getName(), lightPoll);
         this.modules.put(this.lightReaction.getName(), lightReaction);
         this.modules.put(this.lightVerify.getName(), lightVerify);
         this.modules.put(this.lightRoles.getName(), lightRoles);
         this.modules.put(this.lightProfile.getName(), lightProfile);
+        this.modules.put(this.lightChannel.getName(), lightChannel);
 
     }
 

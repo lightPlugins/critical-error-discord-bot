@@ -13,7 +13,9 @@ public class UserProfile {
     private String username;
     private String ipAddress;
     private int coins;
-    private Date lastSeen;
+    private long lastSeen;
+    private long timeJoined;
+    private Date birthday;
 
 
 }
