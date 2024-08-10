@@ -1,0 +1,17 @@
+autochannel:
+  # Enable or disable the auto channel feature
+  enable: true
+    # The category ID where the auto channels will be created
+  category-id: 1076991427969552384
+    # The channel name prefix (e.g., “AC - ") After the prefix, the channel will be named as the user's name.
+  channel-name: "AC - "
+  # The Channel ID for the user limit template
+  join-channels:
+    # The channel ID for the limit of 2 users in one channel.
+    two: 1271642972039155773
+    # The channel ID for the limit of 3 users in one channel.
+    three: 1271642922869063790
+    # The channel ID for the limit of 4 users in one channel.
+    four: 1271645040959291444
+    # The channel ID for the limit of 5 users in one channel.
+    five: 1271633689104875611
