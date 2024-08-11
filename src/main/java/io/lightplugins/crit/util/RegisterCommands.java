@@ -53,7 +53,7 @@ public class RegisterCommands extends ListenerAdapter {
                 "Gibt einem User die Member Rolle").addOptions(giveMemberOption));
         // add command /removemember to the list
         commandData.add(Commands.slash("removemember",
-                "Gibt einem User die Member Rolle").addOptions(removeMemberOption));
+                "Entfernt einem User die Member Rolle").addOptions(removeMemberOption));
 
 
         /*

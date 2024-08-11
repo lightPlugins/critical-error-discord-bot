@@ -7,11 +7,11 @@ autochannel:
   channel-name: "AC - "
   # The Channel ID for the user limit template
   join-channels:
-    # The channel ID for the limit of 2 users in one channel.
+    # The join me channel ID for the limit of 2 users in one channel.
     two: 1271642972039155773
-    # The channel ID for the limit of 3 users in one channel.
+    # The join me channel ID for the limit of 3 users in one channel.
     three: 1271642922869063790
-    # The channel ID for the limit of 4 users in one channel.
+    # The join me channel ID for the limit of 4 users in one channel.
     four: 1271645040959291444
-    # The channel ID for the limit of 5 users in one channel.
+    # The join me channel ID for the limit of 5 users in one channel.
     five: 1271633689104875611

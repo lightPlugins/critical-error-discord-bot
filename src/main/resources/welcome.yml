@@ -1,0 +1,22 @@
+welcome:
+  enable: true
+  # The channel ID where the welcome message will be sent
+  welcome-channel-id: "1076993100054007828"
+  # The channel ID for the self roles
+  selfroles-channel-id: "1076991601106231406"
+  embed:
+    # The title of the embed message
+    title: "**Willkommen auf CRIT-E** :tada:"
+    # The description of the embed message
+    description: "#mention# ist dem Server beigetreten! Wir freuen uns, dich bei uns zu haben! :blush:"
+    # The color of the embed message
+    color: "ffdc73"
+    # The footer of the embed message
+    footer: "Bei Fragen oder Anregungen, wende dich einfach an das Team."
+    # The thumbnail of the embed message
+    thumbnail: "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png"
+    field:
+      # The title of the field
+      title: "Füge deine Hauptspiele zu deinem Serverprofil hinzu, um Benachrichtigungen zu den jeweiligen Spielen zu erhalten."
+      # The inline of the field
+      inline: true

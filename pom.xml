@@ -111,32 +111,33 @@
                                     <shadedPattern>io.lightplugins.crit.util.hikari</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <outputFile>C:/Users/philipp/Desktop/discord-bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.lightplugins.crit.master.LightMaster</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+                            <!-- <outputFile>C:/Users/philipp/Desktop/discord-bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>   # Für Laptop -->
+                             <outputFile>C:/Users/phili/Documents/02 CRIT-E/04 Coding/01 Discord Bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>
+                             <filters>
+                                 <filter>
+                                     <artifact>*:*</artifact>
+                                     <excludes>
+                                         <exclude>META-INF/*.SF</exclude>
+                                         <exclude>META-INF/*.DSA</exclude>
+                                         <exclude>META-INF/*.RSA</exclude>
+                                     </excludes>
+                                 </filter>
+                             </filters>
+                             <transformers>
+                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                     <mainClass>io.lightplugins.crit.master.LightMaster</mainClass>
+                                 </transformer>
+                             </transformers>
+                         </configuration>
+                     </execution>
+                 </executions>
+             </plugin>
+         </plugins>
+     </build>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-    </properties>
+     <properties>
+         <maven.compiler.source>21</maven.compiler.source>
+         <maven.compiler.target>21</maven.compiler.target>
+     </properties>
 
-</project>
+ </project>

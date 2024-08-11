@@ -24,17 +24,17 @@ public class RemoveMember extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
-        // check if user has permission
-        if(!PermissionNode.isSupporter(Objects.requireNonNull(event.getMember()))) {
-            MessageSender.sendNoPermissionMessage(event);
-            return;
-        }
-
         String executedCommand = event.getName();
         String triggerCommand = "removemember";
 
         // check if command is the trigger command
-        if(!executedCommand.equalsIgnoreCase(triggerCommand))  {
+        if(!executedCommand.equalsIgnoreCase(triggerCommand)) {
+            return;
+        }
+
+        // check if user has permission
+        if(!PermissionNode.isSupporter(Objects.requireNonNull(event.getMember()))) {
+            MessageSender.sendNoPermissionMessage(event);
             return;
         }
 
@@ -79,7 +79,7 @@ public class RemoveMember extends ListenerAdapter {
 
         // check if the user has the Member role
         if(!user.getRoles().contains(memberRole)) {
-            event.reply(":no_entry:  User **" + user.getNickname() + "** hat nicht den Member Rang.")
+            event.reply(":no_entry:  User **" + user.getEffectiveName() + "** hat nicht den Member Rang.")
                     .setEphemeral(true).queue();
             return;
         }
@@ -87,9 +87,9 @@ public class RemoveMember extends ListenerAdapter {
         // add role to user
         event.getGuild().removeRoleFromMember(user, memberRole).queue();
 
-        event.reply(":white_check_mark: Du hast dem User **" + user.getNickname() + "** erfolgreich den Member Rang entfernt.")
+        event.reply(":white_check_mark: Du hast dem User **" + user.getEffectiveName() + "** erfolgreich den Member Rang entfernt.")
                 .setEphemeral(true).queue();
-        LightPrinter.print("[COMMAND] " + event.getMember().getNickname() + " has removed " + user.getNickname() + " the Member role.");
+        LightPrinter.print("[COMMAND] " + event.getMember().getEffectiveName() + " has removed " + user.getNickname() + " the Member role.");
     }
 
 }

@@ -3,6 +3,7 @@ package io.lightplugins.crit.master;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.lightplugins.crit.modules.channel.LightChannel;
+import io.lightplugins.crit.modules.message.LightMessage;
 import io.lightplugins.crit.modules.poll.LightPoll;
 import io.lightplugins.crit.modules.profiles.LightProfile;
 import io.lightplugins.crit.modules.reaction.LightReaction;
@@ -41,6 +42,7 @@ public class LightMaster {
     public LightRoles lightRoles;
     public LightProfile lightProfile;
     public LightChannel lightChannel;
+    public LightMessage lightMessage;
 
     @Getter
     private final ShardManager shardManager;
@@ -138,6 +140,7 @@ public class LightMaster {
         this.loadModule(lightRoles, true);
         this.loadModule(lightProfile, true);
         this.loadModule(lightChannel, true);
+        this.loadModule(lightMessage, true);
     }
 
     private void loadModule(LightModule lightModule, boolean enable) {
@@ -166,6 +169,7 @@ public class LightMaster {
         this.lightRoles = new LightRoles();
         this.lightProfile = new LightProfile();
         this.lightChannel = new LightChannel();
+        this.lightMessage = new LightMessage();
 
         this.modules.put(this.lightPoll.getName(), lightPoll);
         this.modules.put(this.lightReaction.getName(), lightReaction);
@@ -173,6 +177,7 @@ public class LightMaster {
         this.modules.put(this.lightRoles.getName(), lightRoles);
         this.modules.put(this.lightProfile.getName(), lightProfile);
         this.modules.put(this.lightChannel.getName(), lightChannel);
+        this.modules.put(this.lightMessage.getName(), lightMessage);
 
     }
 
@@ -187,6 +192,14 @@ public class LightMaster {
             if ("stop".equalsIgnoreCase(input)) {
                 shutdown();
                 break;
+            } else if ("reload".equalsIgnoreCase(input)) {
+                LightPrinter.print("Reloading modules ...");
+                for(LightModule module : modules.values()) {
+                    module.reload();
+                }
+                LightPrinter.print("All modules reloaded.");
+            } else {
+                LightPrinter.print("Unknown command. Type 'stop' to shutdown the bot.");
             }
         }
     }

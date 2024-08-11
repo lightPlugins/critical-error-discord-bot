@@ -12,3 +12,4 @@ database:
     prepStmtCacheSqlLimit: 2048
     connectionPoolSize: 10
 
+

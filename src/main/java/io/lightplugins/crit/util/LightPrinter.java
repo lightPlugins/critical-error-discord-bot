@@ -19,6 +19,6 @@ public class LightPrinter {
     public  static void printError(String message) {
         LocalDateTime localDateTime = LocalDateTime.now();
         DateTimeFormatter formatedDate = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-        System.err.println(LightMaster.getPrefix() + "[" + localDateTime.format(formatedDate)+ "] " + message);
+        System.err.println(LightMaster.getPrefix() + "[" + localDateTime.format(formatedDate)+ "] [ERROR]" + message);
     }
 }

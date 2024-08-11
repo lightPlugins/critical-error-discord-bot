@@ -24,17 +24,17 @@ public class GiveMember extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
-        // check if user has permission
-        if(!PermissionNode.isSupporter(Objects.requireNonNull(event.getMember()))) {
-            MessageSender.sendNoPermissionMessage(event);
-            return;
-        }
-
         String executedCommand = event.getName();
         String triggerCommand = "addmember";
 
         // check if command is the trigger command
         if(!executedCommand.equalsIgnoreCase(triggerCommand))  {
+            return;
+        }
+
+        // check if user has permission
+        if(!PermissionNode.isSupporter(Objects.requireNonNull(event.getMember()))) {
+            MessageSender.sendNoPermissionMessage(event);
             return;
         }
 
@@ -79,7 +79,7 @@ public class GiveMember extends ListenerAdapter {
 
         // check if the user already has the role
         if(user.getRoles().contains(memberRole)) {
-            event.reply(":no_entry:  User **" + user.getNickname() + "** hat bereits die Member Rolle.")
+            event.reply(":no_entry:  User **" + user.getEffectiveName() + "** hat bereits die Member Rolle.")
                     .setEphemeral(true).queue();
             return;
         }
@@ -87,9 +87,9 @@ public class GiveMember extends ListenerAdapter {
         // add role to user
         event.getGuild().addRoleToMember(user, memberRole).queue();
 
-        event.reply(":white_check_mark: Du hast dem User **" + user.getNickname() + "** erfolgreich den Member Rang gegeben.")
+        event.reply(":white_check_mark: Du hast dem User **" + user.getEffectiveName() + "** erfolgreich den Member Rang gegeben.")
                 .setEphemeral(true).queue();
-        LightPrinter.print("[COMMAND] " + event.getMember().getNickname() + " has given " + user.getNickname() + " the Member role.");
+        LightPrinter.print("[COMMAND] " + event.getMember().getEffectiveName() + " has given " + user.getNickname() + " the Member role.");
     }
 
 }
