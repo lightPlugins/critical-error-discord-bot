@@ -1,11 +1,14 @@
 package io.lightplugins.crit.util.database;
 
 import io.lightplugins.crit.master.LightMaster;
+import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.DatabaseTypes;
 
 import java.sql.*;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,6 +64,30 @@ public abstract class SQLDatabase {
         }, dbExecutor);
     }
 
+    public List<UserProfile> queryUserProfiles(String sql) {
+        List<UserProfile> userProfiles = new ArrayList<>();
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                UserProfile userProfile = new UserProfile();
+                // Populate userProfile with data from the result set
+                userProfile.setUniqueId(rs.getString("uniqueId"));
+                userProfile.setUsername(rs.getString("username"));
+                userProfile.setIpAddress(rs.getString("ipAddress"));
+                userProfile.setCoins(rs.getInt("coins"));
+                userProfile.setLastSeen(rs.getLong("lastSeen"));
+                userProfile.setTimeJoined(rs.getLong("timeJoined"));
+                long dateLong = rs.getLong("birthday");
+                Date birthday = new Date(dateLong);
+                userProfile.setBirthday(birthday); // Handle null birthday
+                userProfiles.add(userProfile);
+            }
+        } catch (SQLException e) {
+            LightPrinter.printError("Could not execute SQL statement: " + sql + e);
+        }
+        return userProfiles;
+    }
+
     public <T> T queryDatabase(String sql, Class<T> type, Object... replacements) {
         try (Connection c = getConnection();
              PreparedStatement statement = prepareStatement(c, sql, replacements);
@@ -114,6 +141,8 @@ public abstract class SQLDatabase {
         });
         return future;
     }
+
+
 
     private void replaceQueryParameters(PreparedStatement statement, Object[] replacements) {
         if (replacements != null) {

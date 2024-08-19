@@ -7,6 +7,11 @@ import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.database.model.TableNames;
 
 import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LightProfileAPI {
 
@@ -55,5 +60,19 @@ public class LightProfileAPI {
         return database.insertIntoDatabase(sql, sqlDate, uniqueId);
     }
 
-}
+    public long getBirthdayDate(String uniqueId) {
+        SQLDatabase database = LightMaster.instance.getDatabase();
+        String sql = "SELECT birthday FROM " + TableNames.USER_DATA.getTableName() + " WHERE uniqueId = ?";
+        Date date = database.queryDatabase(sql, Date.class, uniqueId);
+        return date != null ? date.getTime() : -1;
+    }
+
+    public List<UserProfile> getAllUserProfiles() {
+        SQLDatabase database = LightMaster.instance.getDatabase();
+        String sql = "SELECT * FROM " + TableNames.USER_DATA.getTableName();
+        return database.queryUserProfiles(sql);
+    }
+
+
+    }
 

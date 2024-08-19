@@ -21,6 +21,7 @@ import io.lightplugins.crit.util.manager.FileManager;
 import io.lightplugins.crit.util.models.DiscordShardBuilder;
 import lombok.Getter;
 import lombok.Setter;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 

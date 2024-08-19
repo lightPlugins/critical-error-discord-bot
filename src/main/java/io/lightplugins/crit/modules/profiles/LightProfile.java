@@ -4,6 +4,7 @@ import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.modules.profiles.api.LightProfileAPI;
 import io.lightplugins.crit.modules.profiles.commands.AddBirthdayCommand;
 import io.lightplugins.crit.modules.profiles.listener.AddGuildMember;
+import io.lightplugins.crit.modules.profiles.manager.BirthdayChecker;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.TableNames;
 import io.lightplugins.crit.util.interfaces.LightModule;
@@ -19,6 +20,7 @@ public class LightProfile implements LightModule {
 
     @Getter
     private static LightProfileAPI lightProfileAPI;
+    private BirthdayChecker birthdayChecker;
 
     @Override
     public void enable() {
@@ -33,6 +35,9 @@ public class LightProfile implements LightModule {
          */
 
         lightProfileAPI = new LightProfileAPI();
+
+        String channelId = "YOUR_CHANNEL_ID";
+        this.birthdayChecker = new BirthdayChecker(lightProfileAPI, LightMaster.instance.getShardManager().getShardById(0), channelId);
 
         LightPrinter.print("LightProfile has been enabled.");
 

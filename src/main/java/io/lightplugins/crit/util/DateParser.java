@@ -21,4 +21,10 @@ public class DateParser {
         throw new IllegalArgumentException("Invalid date format: " + dateString);
     }
 
+    public static String convertMillisToDate(long dateInMillis) {
+        Date date = new Date(dateInMillis);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        return sdf.format(date);
+    }
+
 }
