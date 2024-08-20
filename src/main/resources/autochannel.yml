@@ -1,6 +1,8 @@
 autochannel:
   # Enable or disable the auto channel feature
   enable: true
+    # The channel ID where the users will get an modal to join the auto channels
+  join-channel: 1275201489606017095
     # The category ID where the auto channels will be created
   category-id: 1076991427969552384
     # The channel name prefix (e.g., “AC - ") After the prefix, the channel will be named as the user's name.

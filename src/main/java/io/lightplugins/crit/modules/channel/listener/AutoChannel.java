@@ -41,6 +41,7 @@ public class AutoChannel extends ListenerAdapter {
         Member member = event.getMember();
         Guild guild = event.getGuild();
 
+
         if (joinedChannel != null) {
             Category category = guild.getCategoryById(categoryId);
             if (category != null) {
@@ -65,7 +66,7 @@ public class AutoChannel extends ListenerAdapter {
                             .queue(voiceChannel -> {
                                 guild.moveVoiceMember(member, voiceChannel).queue();
                             });
-                    LightPrinter.print("[AUTOCHANNEL] Created auto channel for " +
+                    LightPrinter.print("Created auto channel for " +
                             member.getEffectiveName() + " in " + category.getName() +
                             " with user limit " + userLimit);
                 }
@@ -79,7 +80,7 @@ public class AutoChannel extends ListenerAdapter {
         // Delete empty auto channel if the last member left
         if (leftChannel.getName().contains(LightChannel.instance.getAutoChannelName()) && leftChannel.getMembers().isEmpty()) {
             leftChannel.delete().queue();
-            LightPrinter.print("[AUTOCHANNEL] Deleted empty auto channel: " + leftChannel.getName());
+            LightPrinter.print("Deleted empty auto channel: " + leftChannel.getName());
         }
     }
 
@@ -89,9 +90,16 @@ public class AutoChannel extends ListenerAdapter {
         Guild guild = event.getGuild();
         for (AudioChannel channel : guild.getVoiceChannels()) {
             if (channel.getName().contains(LightChannel.instance.getAutoChannelName()) && channel.getMembers().isEmpty()) {
-                LightPrinter.print("[AUTOCHANNEL] Detected empty auto channel on bot startup. Try to delete: " + channel.getName());
-                channel.delete().queue();
-                LightPrinter.print("[AUTOCHANNEL] Deleted empty auto channel successfully: " + channel.getName());
+
+                LightPrinter.print("Detected empty auto channel on bot startup. Try to delete: " + channel.getName());
+
+                // i love lambda expressions <3
+                channel.delete().queue(done -> {
+                    LightPrinter.print("Deleted empty auto channel successfully: " + channel.getName());
+                }, e -> {
+                    LightPrinter.print("Failed to delete empty auto channel: " + channel.getName()
+                            + " Reason: " + e.getCause());
+                });
             }
         }
     }
