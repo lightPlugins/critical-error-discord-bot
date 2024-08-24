@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ActiveTimeCommand extends ListenerAdapter {
 
@@ -67,6 +68,7 @@ public class ActiveTimeCommand extends ListenerAdapter {
             event.reply(":no_entry:  User profile not found.").setEphemeral(true).queue();
             return;
         }
+
         // Format and display active times
         StringBuilder response = new StringBuilder("Aktivitäten von dem User **" + user.getEffectiveName() + "**");
 
@@ -74,25 +76,32 @@ public class ActiveTimeCommand extends ListenerAdapter {
         response.append("\n\n");
 
         double overallTime = userProfile.getActiveTime().values().stream().mapToDouble(Double::doubleValue).sum();
+        AtomicInteger counter = new AtomicInteger();
+        // Sort active times by duration in descending order
+        userProfile.getActiveTime().entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .forEach(entry -> {
+                    VoiceChannel channel = event.getGuild().getVoiceChannelById(entry.getKey());
+                    counter.getAndIncrement();
+                    // Check if the channel is valid
+                    if (channel == null) {
+                        LightPrinter.print("Channel not found: " + entry.getKey());
+                        return;
+                    }
 
-        for (Map.Entry<String, Double> entry : userProfile.getActiveTime().entrySet()) {
-            VoiceChannel channel = event.getGuild().getVoiceChannelById(entry.getKey());
+                    String formattedTime = TimeFormatter.formatTime(entry.getValue());
 
-            // Check if the channel is valid
-            if(channel == null) {
-                LightPrinter.print("Channel not found: " + entry.getKey());
-                continue;
-            }
-
-            String formattedTime = TimeFormatter.formatTime(entry.getValue());
-
-            response.append("Channel: ").append(channel.getName())
-                    .append(" - Aktive Zeit: ").append(formattedTime).append("\n");
-        }
+                    // Append channel name and active time to the response
+                    response.append("#")
+                            .append(counter.get())
+                            .append(". ");
+                    response.append("Channel: ").append(channel.getName())
+                            .append(" - Aktive Zeit: ").append(formattedTime).append("\n");
+                });
 
         VoiceChannel afkChannel = event.getGuild().getAfkChannel();
 
-        if(afkChannel == null) {
+        if (afkChannel == null) {
             LightPrinter.printError("AFK Channel not found while executing /timewaste. Please check the config.yml");
             return;
         }
@@ -107,13 +116,11 @@ public class ActiveTimeCommand extends ListenerAdapter {
                 .append("\nZeit im AFK Channel: ")
                 .append("**")
                 .append(TimeFormatter.formatTime(afkTime))
-                .append("**")
-                ;
+                .append("**");
 
         // send static message in channel
         // event.getChannel().sendMessage(response.toString()).queue();
         // send message only visible to the target user
         event.reply(response.toString()).setEphemeral(true).queue();
-
     }
 }

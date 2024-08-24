@@ -6,6 +6,7 @@ import io.lightplugins.crit.util.LightPrinter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -24,6 +25,7 @@ public class WelcomeMessage extends ListenerAdapter {
             return;
         }
 
+        User user = event.getUser();
         Member member = event.getMember();
 
         String welcomeChannelId = LightMessage.instance.getWelcomeConfig().getString("welcome.welcome-channel-id");
@@ -59,7 +61,7 @@ public class WelcomeMessage extends ListenerAdapter {
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setThumbnail(thumbnailURL);
-        embedBuilder.setDescription(description.replace("#mention#", member.getAsMention()));
+        embedBuilder.setDescription(description.replace("#mention#", user.getAsMention()));
         embedBuilder.setTitle(title);
         embedBuilder.addField(fieldTitle, "Self Role Channel: " + roleChannel.getAsMention(), inline);
         embedBuilder.setColor(HexFormat.fromHexDigits(color)); // Goldene Farbe für den linken Balken

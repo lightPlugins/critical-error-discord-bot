@@ -16,7 +16,6 @@ import lombok.Getter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -95,7 +94,7 @@ public class LightProfile implements LightModule {
     }
 
     private void scheduleSyncToDatabase() {
-        scheduler.scheduleAtFixedRate(this::syncToDatabase, 10, 10, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::syncToDatabase, 2, 10, TimeUnit.MINUTES);
     }
 
     private void syncToDatabase() {

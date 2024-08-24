@@ -4,7 +4,6 @@ package io.lightplugins.crit.modules.profiles.listener;
 import io.lightplugins.crit.modules.profiles.LightProfile;
 import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.util.LightPrinter;
-import net.dv8tion.jda.api.entities.Widget;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -12,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class CheckActivity extends ListenerAdapter {
 
@@ -30,21 +30,43 @@ public class CheckActivity extends ListenerAdapter {
         }
 
         if (channelIdLeft != null) {
+
+            if(Objects.equals(event.getChannelLeft().getParentCategoryId(), "1275200581736206346")) {
+                LightPrinter.printWatchdog("User joined a channel in the Watchdog category");
+                return;
+            }
+
+            if(Objects.equals(event.getChannelLeft().getParentCategoryId(), "1275200365033295872")) {
+                LightPrinter.printWatchdog("User joined a channel in the Watchdog category");
+                return;
+            }
+
             // User left a voice channel
             Long joinTime = joinTimes.remove(userId);
             if (joinTime != null) {
+
+                if(event.getChannelJoined() != null) {
+                    if(Objects.equals(event.getChannelJoined().getParentCategoryId(), "1275200581736206346")) {
+                        LightPrinter.printWatchdog("User joined a channel in the Watchdog category");
+                        return;
+                    }
+
+                    if(Objects.equals(event.getChannelJoined().getParentCategoryId(), "1275200365033295872")) {
+                        LightPrinter.printWatchdog("User joined a channel in the Watchdog category");
+                        return;
+                    }
+                }
+
                 double timeSpent = (System.currentTimeMillis() - joinTime) / 1000.0;
                 UserProfile userProfile = LightProfile.getLightProfileAPI().getUserProfile(userId);
                 if (userProfile != null) {
                     userProfile.getActiveTime().merge(channelIdLeft, timeSpent, Double::sum);
-                    LightPrinter.print("User " + userId + " has spent " + userProfile.getActiveTime().get(channelIdLeft) + " seconds in voice channel " + channelIdLeft);
                 }
             }
         }
 
         if (channelIdJoined != null) {
             // User joined a new voice channel
-            LightPrinter.print("User " + userId + " joined voice channel " + event.getChannelJoined().getName());
             joinTimes.put(userId, System.currentTimeMillis());
         }
     }
