@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class BirthdayChecker {
 
@@ -45,7 +44,7 @@ public class BirthdayChecker {
     public void scheduleTestCheck() {
         LightPrinter.print("Scheduling test birthday check...");
         try {
-            LocalTime testTime = LocalTime.now().plusSeconds(4); // Set target time to 10 seconds from now
+            LocalTime testTime = LocalTime.now().plusSeconds(4); // Set target time to 4 seconds from now
             long initialDelay = calculateInitialDelay(testTime);
             long period = TimeUnit.DAYS.toMillis(1);
 
@@ -68,15 +67,18 @@ public class BirthdayChecker {
 
     private void checkBirthdays() {
         LocalDate today = LocalDate.now();
-        List<UserProfile> allUsers = profileAPI.getAllUserProfiles();
+        List<UserProfile> allUsers = profileAPI.getUserProfiles();
         LightPrinter.print("Checking birthdays from " + allUsers.size() + " users.");
-
-        LightPrinter.printDebug("All users: " + allUsers.size());
 
         boolean birthdayToday = false;
 
         for(UserProfile user : allUsers) {
             LightPrinter.printDebug("Checking user: " + user.getBirthday());
+
+            if(user.getBirthday() == null) {
+                LightPrinter.printDebug("User " + user.getUsername() + " has no birthday set.");
+                continue;
+            }
             Date birthday = user.getBirthday();
             LocalDate birthdayDate = Instant.ofEpochMilli(birthday.getTime())
                     .atZone(ZoneId.systemDefault())

@@ -4,10 +4,12 @@ import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.DatabaseTypes;
+import io.lightplugins.crit.util.database.model.TableNames;
 
 import java.sql.*;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -73,7 +75,7 @@ public abstract class SQLDatabase {
                 // Populate userProfile with data from the result set
                 userProfile.setUniqueId(rs.getString("uniqueId"));
                 userProfile.setUsername(rs.getString("username"));
-                userProfile.setIpAddress(rs.getString("ipAddress"));
+                userProfile.setCurrentlyBanned(rs.getBoolean("currentlyBanned"));
                 userProfile.setCoins(rs.getInt("coins"));
                 userProfile.setLastSeen(rs.getLong("lastSeen"));
                 userProfile.setTimeJoined(rs.getLong("timeJoined"));
@@ -157,6 +159,14 @@ public abstract class SQLDatabase {
                     throw new RuntimeException("Failed to set query parameter", e);
                 }
             }
+        }
+    }
+
+    public void executeSQL(String sql) {
+        try (Connection c = getConnection(); PreparedStatement statement = c.prepareStatement(sql)) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not execute SQL statement", e);
         }
     }
 }

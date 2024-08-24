@@ -5,7 +5,8 @@ public enum TableNames {
         Translations for the roles module
      */
 
-    USER_DATA("userData")
+    USER_DATA("userData"),
+    CHANNEL_TIME("voiceChannelTime")
     ;
 
     private final String path;

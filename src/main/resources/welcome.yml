@@ -4,7 +4,7 @@ welcome:
   welcome-channel-id: "1076993100054007828"
   # The channel ID for the self roles
   selfroles-channel-id: "1076991601106231406"
-  embed:
+  modules:
     # The title of the embed message
     title: "**Willkommen auf CRIT-E** :tada:"
     # The description of the embed message

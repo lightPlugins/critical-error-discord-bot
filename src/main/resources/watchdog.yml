@@ -1,0 +1,12 @@
+logging:
+  # The channel ID where the logs will be sent
+  channelID: 1276888399881572384
+  modules:
+    # If someone changed a role from a member
+    role: true
+    # If someone ban a member
+    ban: true
+    # If someone kick a member
+    kick: true
+    # If someone disconnects from the voice channel or get kicked out
+    disconnect: true

@@ -37,6 +37,9 @@ public class RegisterCommands extends ListenerAdapter {
         // options from /removemember
         OptionData removeMemberOption = new OptionData(OptionType.STRING, "user",
                 "Discord @ Tag des Users", true);
+        // options from /test
+        OptionData activityShow = new OptionData(OptionType.STRING, "user",
+                "Discord @ Tag des Users", true);
 
 
 
@@ -54,6 +57,9 @@ public class RegisterCommands extends ListenerAdapter {
         // add command /removemember to the list
         commandData.add(Commands.slash("removemember",
                 "Entfernt einem User die Member Rolle").addOptions(removeMemberOption));
+        // add command /removemember to the list
+        commandData.add(Commands.slash("timewaste",
+                "Entfernt einem User die Member Rolle").addOptions(activityShow));
 
 
         /*

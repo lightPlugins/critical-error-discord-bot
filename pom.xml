@@ -111,8 +111,8 @@
                                     <shadedPattern>io.lightplugins.crit.util.hikari</shadedPattern>
                                 </relocation>
                             </relocations>
-                            <outputFile>C:/Users/philipp/Desktop/discord-bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>
-                            <!-- <outputFile>C:/Users/phili/Documents/02 CRIT-E/04 Coding/01 Discord Bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile> -->
+                            <!-- <outputFile>C:/Users/philipp/Desktop/discord-bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile> -->
+                            <outputFile>C:/Users/phili/Documents/02 CRIT-E/04 Coding/01 Discord Bot/${project.artifactId}-${project.version}-SNAPSHOT.jar</outputFile>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

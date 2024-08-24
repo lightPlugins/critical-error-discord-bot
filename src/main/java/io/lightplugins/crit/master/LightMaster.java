@@ -9,6 +9,7 @@ import io.lightplugins.crit.modules.profiles.LightProfile;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
+import io.lightplugins.crit.modules.watchdog.LightWatchdog;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.RegisterCommands;
 import io.lightplugins.crit.util.database.SQLDatabase;
@@ -37,6 +38,7 @@ public class LightMaster {
 
     // Modules listed here
 
+    public LightWatchdog lightWatchdog;
     public LightPoll lightPoll;
     public LightReaction lightReaction;
     public LightVerify lightVerify;
@@ -135,6 +137,7 @@ public class LightMaster {
 
     private void loadModules() {
 
+        this.loadModule(lightWatchdog, true);
         this.loadModule(lightPoll, true);
         this.loadModule(lightReaction, true);
         this.loadModule(lightVerify, true);
@@ -164,6 +167,7 @@ public class LightMaster {
 
         modules = new HashMap<>();
 
+        this.lightWatchdog = new LightWatchdog();
         this.lightPoll = new LightPoll();
         this.lightReaction = new LightReaction();
         this.lightVerify = new LightVerify();
@@ -172,6 +176,7 @@ public class LightMaster {
         this.lightChannel = new LightChannel();
         this.lightMessage = new LightMessage();
 
+        this.modules.put(this.lightWatchdog.getName(), lightWatchdog);
         this.modules.put(this.lightPoll.getName(), lightPoll);
         this.modules.put(this.lightReaction.getName(), lightReaction);
         this.modules.put(this.lightVerify.getName(), lightVerify);

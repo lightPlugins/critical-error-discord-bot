@@ -18,13 +18,15 @@ public class PermissionNode {
         adminRoles.add(member.getGuild().getRoleById("1081002997196267520"));
         // Leader Role
         adminRoles.add(member.getGuild().getRoleById("1261832512406294528"));
+        // IT Role
+        adminRoles.add(member.getGuild().getRoleById("1269399942737166426"));
 
         for(Role role : adminRoles) {
             if(member.getRoles().contains(role)) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public static boolean isMember(Member member) {

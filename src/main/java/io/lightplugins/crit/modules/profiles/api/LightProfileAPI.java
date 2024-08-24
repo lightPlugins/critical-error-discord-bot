@@ -5,37 +5,44 @@ import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.SQLDatabase;
 import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.database.model.TableNames;
+import lombok.Getter;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+@Getter
 public class LightProfileAPI {
 
-    public void createNewProfile(String uniqueId, String username, String ipAddress, int coins, long lastSeen, long timeJoined) {
+    private List<UserProfile> userProfiles = new ArrayList<>();
+
+    public void createNewProfile(String uniqueId, String username, boolean currentlyBanned, int coins, long lastSeen, long timeJoined) {
 
         UserProfile userProfile = new UserProfile();
         userProfile.setUniqueId(uniqueId);
         userProfile.setUsername(username);
-        userProfile.setIpAddress(ipAddress);
+        userProfile.setCurrentlyBanned(currentlyBanned);
         userProfile.setCoins(coins);
         userProfile.setLastSeen(lastSeen);
         userProfile.setTimeJoined(timeJoined);
         insertProfile(userProfile);
     }
 
+    public void syncUserProfilesToRAM() {
+        userProfiles = getAllUserProfilesFromDatabase();
+    }
+
     public void insertProfile(UserProfile userProfile) {
         SQLDatabase database = LightMaster.instance.getDatabase();
         String sql = "INSERT INTO " + TableNames.USER_DATA.getTableName() +
-                " (uniqueId, username, ipAddress, coins, lastSeen, timeJoined) VALUES (?, ?, ?, ?, ?, ?)";
+                " (uniqueId, username, currentlyBanned, coins, lastSeen, timeJoined) VALUES (?, ?, ?, ?, ?, ?)";
 
         if(database.insertIntoDatabase(sql,
                 userProfile.getUniqueId(),
                 userProfile.getUsername(),
-                userProfile.getIpAddress(),
+                userProfile.isCurrentlyBanned(),
                 userProfile.getCoins(),
                 userProfile.getLastSeen(),
                 userProfile.getTimeJoined())) {
@@ -67,12 +74,72 @@ public class LightProfileAPI {
         return date != null ? date.getTime() : -1;
     }
 
-    public List<UserProfile> getAllUserProfiles() {
+    // Modify the getAllUserProfilesFromDatabase method to handle date parsing correctly
+    public List<UserProfile> getAllUserProfilesFromDatabase() {
         SQLDatabase database = LightMaster.instance.getDatabase();
-        String sql = "SELECT * FROM " + TableNames.USER_DATA.getTableName();
-        return database.queryUserProfiles(sql);
+        String sql = "SELECT ud.*, ct.channelId, ct.activeTime " +
+                "FROM " + TableNames.USER_DATA.getTableName() + " ud " +
+                "LEFT JOIN " + TableNames.CHANNEL_TIME.getTableName() + " ct " +
+                "ON ud.uniqueId = ct.uniqueId";
+        List<UserProfile> userProfiles;
+        try (Connection connection = database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+            Map<String, UserProfile> userProfileMap = new HashMap<>();
+            while (resultSet.next()) {
+                String uniqueId = resultSet.getString("uniqueId");
+                UserProfile userProfile = userProfileMap.get(uniqueId);
+                if (userProfile == null) {
+                    userProfile = new UserProfile();
+                    userProfile.setUniqueId(uniqueId);
+                    userProfile.setUsername(resultSet.getString("username"));
+                    userProfile.setCurrentlyBanned(resultSet.getBoolean("currentlyBanned"));
+                    userProfile.setCoins(resultSet.getInt("coins"));
+                    userProfile.setLastSeen(resultSet.getLong("lastSeen"));
+                    userProfile.setTimeJoined(resultSet.getLong("timeJoined"));
+                    // Correctly parse the birthday field
+                    long birthdayTimestamp = resultSet.getLong("birthday");
+                    if (!resultSet.wasNull()) {
+                        userProfile.setBirthday(new java.util.Date(birthdayTimestamp));
+                    }
+                    userProfile.setActiveTime(new HashMap<>());
+                    userProfileMap.put(uniqueId, userProfile);
+                }
+                String channelId = resultSet.getString("channelId");
+                if (channelId != null) {
+                    double activeTime = resultSet.getDouble("activeTime");
+                    userProfile.getActiveTime().put(channelId, activeTime);
+                }
+            }
+            userProfiles = new ArrayList<>(userProfileMap.values());
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not query user profiles from database", e);
+        }
+        return userProfiles;
     }
 
-
+    public UserProfile getUserProfileFromDatabase(String uniqueId) {
+        SQLDatabase database = LightMaster.instance.getDatabase();
+        String sql = "SELECT * FROM " + TableNames.USER_DATA.getTableName() + " WHERE uniqueId = " + uniqueId;
+        List<UserProfile> userProfiles = database.queryUserProfiles(sql);
+        return userProfiles.isEmpty() ? null : userProfiles.getFirst();
     }
+
+    public UserProfile getUserProfile(String uniqueId) {
+        for (UserProfile userProfile : userProfiles) {
+            if (userProfile.getUniqueId().equals(uniqueId)) {
+                return userProfile;
+            }
+        }
+        return null;
+    }
+
+    public void addCurrentlyBannedColumn() {
+        SQLDatabase database = LightMaster.instance.getDatabase();
+        String alterTableSql = "ALTER TABLE " + TableNames.USER_DATA.getTableName() + " ADD COLUMN currentlyBanned INT DEFAULT 0";
+        database.executeSQL(alterTableSql);
+    }
+
+}
+
 

@@ -19,7 +19,7 @@ public class PollCommand extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
 
-        if(!PermissionNode.isAdmin(Objects.requireNonNull(event.getMember()))) {
+        if(PermissionNode.isAdmin(Objects.requireNonNull(event.getMember()))) {
             event.reply(":no_entry:  You are not allowed to use this command").setEphemeral(true).queue();
             return;
         }
