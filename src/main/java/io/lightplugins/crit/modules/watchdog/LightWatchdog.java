@@ -2,6 +2,7 @@ package io.lightplugins.crit.modules.watchdog;
 
 import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.modules.watchdog.logging.ChangeName;
+import io.lightplugins.crit.modules.watchdog.logging.DeletedMessages;
 import io.lightplugins.crit.modules.watchdog.logging.JoinGuild;
 import io.lightplugins.crit.modules.watchdog.logging.VoiceKick;
 import io.lightplugins.crit.util.interfaces.LightModule;
@@ -23,7 +24,8 @@ public class LightWatchdog implements LightModule {
         LightMaster.instance.getShardManager().addEventListener(
                 new JoinGuild(),
                 new VoiceKick(),
-                new ChangeName()
+                new ChangeName(),
+                new DeletedMessages()
         );
 
     }
