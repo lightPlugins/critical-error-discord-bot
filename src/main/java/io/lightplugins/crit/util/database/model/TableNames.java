@@ -6,7 +6,9 @@ public enum TableNames {
      */
 
     USER_DATA("userData"),
-    CHANNEL_TIME("voiceChannelTime")
+    CHANNEL_TIME("voiceChannelTime"),
+    CHAT_MESSAGES("chatMessages"),
+    CHAT_ATTACHMENTS("messageAttachments")
     ;
 
     private final String path;

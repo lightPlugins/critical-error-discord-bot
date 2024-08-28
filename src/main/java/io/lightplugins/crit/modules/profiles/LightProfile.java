@@ -6,6 +6,7 @@ import io.lightplugins.crit.modules.profiles.commands.AddBirthdayCommand;
 import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.modules.profiles.listener.AddGuildMember;
 import io.lightplugins.crit.modules.profiles.listener.CheckActivity;
+import io.lightplugins.crit.modules.profiles.listener.SaveMessages;
 import io.lightplugins.crit.modules.profiles.manager.BirthdayChecker;
 import io.lightplugins.crit.modules.watchdog.commands.ActiveTimeCommand;
 import io.lightplugins.crit.util.LightPrinter;
@@ -60,13 +61,36 @@ public class LightProfile implements LightModule {
                                 "activeTime DOUBLE"
                 );
 
+        // Erstellen der Tabelle für Chatnachrichten
+        LightMaster.instance.getDatabase()
+                .createTable(TableNames.CHAT_MESSAGES.getTableName(),
+                        "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "messageID VARCHAR(36), " +
+                                "userID VARCHAR(36), " +
+                                "messageText TEXT, " +
+                                "timestamp TIMESTAMP"
+                );
+
+        // Erstellen der Tabelle für Nachrichten anhänge
+        LightMaster.instance.getDatabase()
+                .createTable(TableNames.CHAT_ATTACHMENTS.getTableName(),
+                        "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "attachmentID VARCHAR(36), " +
+                                "messageID VARCHAR(36), " +
+                                "userID VARCHAR(36), " +
+                                "filePath TEXT, " +
+                                "mediaType VARCHAR(50), " +
+                                "FOREIGN KEY (messageID) REFERENCES " + TableNames.CHAT_MESSAGES.getTableName() + "(messageID)"
+                );
+
         lightProfileAPI.syncUserProfilesToRAM();
 
         LightMaster.instance.getShardManager().addEventListener(
                 new AddGuildMember(),
                 new AddBirthdayCommand(),
                 new CheckActivity(),
-                new ActiveTimeCommand()
+                new ActiveTimeCommand(),
+                new SaveMessages()
         );
 
         scheduleSyncToDatabase();
@@ -105,9 +129,6 @@ public class LightProfile implements LightModule {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             for (UserProfile userProfile : lightProfileAPI.getUserProfiles()) {
-                if(!userProfile.getActiveTime().isEmpty()) {
-                    LightPrinter.print("Activity of user profiles: " + userProfile.getUsername());
-                }
 
                 userProfile.getActiveTime().forEach((channelId, time) -> {
                     try {

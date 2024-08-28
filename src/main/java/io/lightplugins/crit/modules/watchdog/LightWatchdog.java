@@ -5,6 +5,7 @@ import io.lightplugins.crit.modules.watchdog.logging.ChangeName;
 import io.lightplugins.crit.modules.watchdog.logging.DeletedMessages;
 import io.lightplugins.crit.modules.watchdog.logging.JoinGuild;
 import io.lightplugins.crit.modules.watchdog.logging.VoiceKick;
+import io.lightplugins.crit.util.database.model.TableNames;
 import io.lightplugins.crit.util.interfaces.LightModule;
 import io.lightplugins.crit.util.manager.FileManager;
 import lombok.Getter;
@@ -24,8 +25,8 @@ public class LightWatchdog implements LightModule {
         LightMaster.instance.getShardManager().addEventListener(
                 new JoinGuild(),
                 new VoiceKick(),
-                new ChangeName(),
-                new DeletedMessages()
+                new ChangeName()
+                // new DeletedMessages()
         );
 
     }
