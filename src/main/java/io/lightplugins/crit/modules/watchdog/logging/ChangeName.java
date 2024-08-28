@@ -4,6 +4,7 @@ import io.lightplugins.crit.modules.watchdog.LightWatchdog;
 import io.lightplugins.crit.util.LightPrinter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -20,7 +21,7 @@ public class ChangeName extends ListenerAdapter {
         long watchdogChannel = LightWatchdog.instance.getWatchdogConfig().getLong("logging.channelID");
 
         // The member who changed their nickname
-        Member member = event.getMember();
+        User user = event.getMember().getUser();
         String oldNickname = event.getOldNickname();
         String newNickname = event.getNewNickname();
 
@@ -35,15 +36,15 @@ public class ChangeName extends ListenerAdapter {
             return;
         }
 
-        sendNicknameChangeEmbed(channel, member, oldNickname, newNickname);
+        sendNicknameChangeEmbed(channel, user, oldNickname, newNickname);
     }
 
-    private void sendNicknameChangeEmbed(TextChannel channel, Member member, String oldNickname, String newNickname) {
+    private void sendNicknameChangeEmbed(TextChannel channel, User user, String oldNickname, String newNickname) {
         String color = "2196F3";
         String title = "Namensänderung festgestellt";
         String url = "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png";
         String description = "Der Benutzer **#member#** hat seinen Namen von **#oldNickname#** zu **#newNickname#** geändert."
-                .replace("#member#", "**" + member.getUser().getName() + "**")
+                .replace("#member#", "**" + user.getAsTag() + "**")
                 .replace("#oldNickname#", "**" + oldNickname + "**")
                 .replace("#newNickname#", "**" + newNickname + "**");
         String footer = "Bei Unregelmäßigkeiten bitte an einen Admin wenden.";
@@ -52,7 +53,7 @@ public class ChangeName extends ListenerAdapter {
         DateTimeFormatter formattedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setThumbnail(url);
+        embedBuilder.setThumbnail(user.getAvatarUrl());
         embedBuilder.setDescription(description);
         embedBuilder.setTitle(title);
         embedBuilder.addField("Wann ist das geschehen?", localDateTime.format(formattedDate), false);
