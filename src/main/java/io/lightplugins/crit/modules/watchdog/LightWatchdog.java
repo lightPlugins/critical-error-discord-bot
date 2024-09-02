@@ -24,7 +24,6 @@ public class LightWatchdog implements LightModule {
 
         LightMaster.instance.getShardManager().addEventListener(
                 new JoinGuild(),
-                new VoiceKick(),
                 new ChangeName(),
                 new DeletedMessages()
         );

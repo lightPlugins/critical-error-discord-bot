@@ -8,6 +8,7 @@ import io.lightplugins.crit.util.database.SQLDatabase;
 import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.database.model.TableNames;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.*;
 import java.sql.Date;
@@ -17,6 +18,9 @@ import java.util.*;
 public class LightProfileAPI {
 
     private List<UserProfile> userProfiles = new ArrayList<>();
+    @Getter
+    @Setter
+    private Map<String, Long> joinTimes = new HashMap<>();
 
     public void createNewProfile(String uniqueId, String username, boolean currentlyBanned, int coins, long lastSeen, long timeJoined) {
 
