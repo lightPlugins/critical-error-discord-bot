@@ -7,17 +7,23 @@ import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.modules.profiles.listener.AddGuildMember;
 import io.lightplugins.crit.modules.profiles.listener.CheckActivity;
 import io.lightplugins.crit.modules.profiles.listener.SaveMessages;
+import io.lightplugins.crit.modules.profiles.lookup.TwitchAPI;
 import io.lightplugins.crit.modules.profiles.manager.BirthdayChecker;
+import io.lightplugins.crit.modules.profiles.manager.TwitchLiveChecker;
 import io.lightplugins.crit.modules.watchdog.commands.ActiveTimeCommand;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.TableNames;
 import io.lightplugins.crit.util.interfaces.LightModule;
+import io.lightplugins.crit.util.manager.FileManager;
 import lombok.Getter;
+import lombok.Setter;
 import net.dv8tion.jda.api.entities.Guild;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,16 +34,24 @@ import java.util.concurrent.TimeUnit;
      * Date: 2023-10-05
      */
 
+@Getter
 public class LightProfile implements LightModule {
 
     @Getter
     private static LightProfileAPI lightProfileAPI;
+    public static LightProfile instance;
     private final CheckActivity checkActivity = new CheckActivity();
+    private final TwitchAPI twitchAPI = new TwitchAPI();
+    private TwitchLiveChecker twitchLiveChecker;
+    private FileManager twitchConfig;
+    private final List<String> streamAlreadyPostet = new ArrayList<>();
 
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void enable() {
+        instance = this;
+        twitchConfig = new FileManager("twitch.yml");
         lightProfileAPI = new LightProfileAPI();
         // lightProfileAPI.addCurrentlyBannedColumn(); // one time setup !!! adds new column to the table
 
@@ -98,6 +112,8 @@ public class LightProfile implements LightModule {
 
         scheduleSyncToDatabase();
         BirthdayChecker birthdayChecker = new BirthdayChecker(lightProfileAPI, LightMaster.instance.getShardManager().getShardById(0), channelId);
+        this.twitchLiveChecker = new TwitchLiveChecker(
+                LightMaster.instance.getShardManager().getNewsChannelById("1218301514355839077"), this.twitchAPI);
     }
 
     @Override
@@ -111,6 +127,9 @@ public class LightProfile implements LightModule {
     @Override
     public void reload() {
         syncToDatabase();
+        this.twitchConfig = new FileManager("twitch.yml");
+        this.twitchLiveChecker = new TwitchLiveChecker(
+                LightMaster.instance.getShardManager().getNewsChannelById("1218301514355839077"), this.twitchAPI);
     }
 
     @Override

@@ -134,9 +134,6 @@ public class LightMaster {
 
         // Start console listener in a new thread
         new Thread(this::listenForConsoleInput).start();
-
-        TwitchAPI twitchAPI = new TwitchAPI("trymacs");
-        twitchAPI.checkUserLiveStatus(); // start test checking if user is live
     }
 
     private void loadModules() {
