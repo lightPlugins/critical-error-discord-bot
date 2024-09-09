@@ -6,6 +6,7 @@ import io.lightplugins.crit.modules.channel.LightChannel;
 import io.lightplugins.crit.modules.message.LightMessage;
 import io.lightplugins.crit.modules.poll.LightPoll;
 import io.lightplugins.crit.modules.profiles.LightProfile;
+import io.lightplugins.crit.modules.profiles.lookup.TwitchAPI;
 import io.lightplugins.crit.modules.reaction.LightReaction;
 import io.lightplugins.crit.modules.roles.LightRoles;
 import io.lightplugins.crit.modules.verify.LightVerify;
@@ -133,6 +134,9 @@ public class LightMaster {
 
         // Start console listener in a new thread
         new Thread(this::listenForConsoleInput).start();
+
+        TwitchAPI twitchAPI = new TwitchAPI("trymacs");
+        twitchAPI.checkUserLiveStatus(); // start test checking if user is live
     }
 
     private void loadModules() {
