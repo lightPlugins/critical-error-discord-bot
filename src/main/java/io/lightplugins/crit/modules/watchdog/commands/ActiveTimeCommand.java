@@ -6,6 +6,7 @@ import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.MessageSender;
 import io.lightplugins.crit.util.PermissionNode;
 import io.lightplugins.crit.util.TimeFormatter;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -24,48 +25,62 @@ public class ActiveTimeCommand extends ListenerAdapter {
 
         String executedCommand = event.getName();
         String triggerCommand = "timewaste";
+        Member user;
+        Guild guild = event.getGuild();
 
         // check if command is the trigger command
         if (!executedCommand.equalsIgnoreCase(triggerCommand)) {
             return;
         }
 
-        // check if user has permission
-        if (PermissionNode.isAdmin(Objects.requireNonNull(event.getMember()))) {
-            MessageSender.sendNoPermissionMessage(event);
+        if(event.getMember() == null) {
+            LightPrinter.printError("Member not found while executing /timewaste");
             return;
         }
 
-        // check if user is in the guild and valid
+        // check if user is in the guild and valid / existing options
         OptionMapping userOption = event.getOption("user");
-        if (userOption == null) {
-            event.reply(":no_entry:  Missing requirements - Discord ID von User").setEphemeral(true).queue();
-            return;
-        }
+        boolean withoutOptions = userOption == null;
 
-        // Extract user ID from mention string
-        String userIdString = userOption.getAsString().replaceAll("[^0-9]", "");
-        long userId;
-        try {
-            userId = Long.parseLong(userIdString);
-        } catch (NumberFormatException e) {
-            event.reply(":no_entry:  Invalid user ID format.").setEphemeral(true).queue();
-            return;
-        }
+        // get Member model from guild by ID or without options (own id)
+        if(withoutOptions) {
+            user = event.getMember();
+        } else {
+            // check if the user has the permission to show the activity of another user
+            if(!PermissionNode.isMember(event.getMember())) {
+                MessageSender.sendNoPermissionMessage(event);
+                return;
+            }
 
-        // get Member model from guild by ID
-        Member user = Objects.requireNonNull(event.getGuild()).getMemberById(userId);
+            // Extract user ID from mention string / option
+            String userIdString = userOption.getAsString().replaceAll("[^0-9]", "");
+            long userId;
+            try {
+                userId = Long.parseLong(userIdString);
+            } catch (NumberFormatException e) {
+                event.reply(":no_entry:  Invalid user ID format.").setEphemeral(true).queue();
+                return;
+            }
 
-        if (user == null) {
-            event.reply(":no_entry:  User **" + userOption.getAsString() + "** wurde nicht gefunden.")
-                    .setEphemeral(true).queue();
-            return;
+            user = Objects.requireNonNull(event.getGuild()).getMemberById(userId);
+
+            if (user == null) {
+                event.reply(":no_entry:  User **" + userOption.getAsString() + "** wurde nicht gefunden.")
+                        .setEphemeral(true).queue();
+                return;
+            }
         }
 
         // Retrieve user profile
         UserProfile userProfile = LightProfile.getLightProfileAPI().getUserProfile(user.getId());
         if (userProfile == null) {
             event.reply(":no_entry:  User profile not found.").setEphemeral(true).queue();
+            return;
+        }
+
+        // Check if guild is valid
+        if(guild == null) {
+            LightPrinter.printError("Guild not found while executing /timewaste");
             return;
         }
 
@@ -81,7 +96,8 @@ public class ActiveTimeCommand extends ListenerAdapter {
         userProfile.getActiveTime().entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .forEach(entry -> {
-                    VoiceChannel channel = event.getGuild().getVoiceChannelById(entry.getKey());
+
+                    VoiceChannel channel = guild.getVoiceChannelById(entry.getKey());
                     counter.getAndIncrement();
                     // Check if the channel is valid
                     if (channel == null) {
@@ -95,11 +111,12 @@ public class ActiveTimeCommand extends ListenerAdapter {
                     response.append("#")
                             .append(counter.get())
                             .append(". ");
-                    response.append("Channel: ").append(channel.getName())
-                            .append(" - Aktive Zeit: ").append(formattedTime).append("\n");
+                    response.append(channel.getAsMention())
+                            .append(" ")
+                            .append("- Aktive Zeit: ").append(formattedTime).append("\n");
                 });
 
-        VoiceChannel afkChannel = event.getGuild().getAfkChannel();
+        VoiceChannel afkChannel = guild.getAfkChannel();
 
         if (afkChannel == null) {
             LightPrinter.printError("AFK Channel not found while executing /timewaste. Please check the config.yml");

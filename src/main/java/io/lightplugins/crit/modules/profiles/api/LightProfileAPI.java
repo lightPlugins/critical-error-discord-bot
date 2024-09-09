@@ -1,22 +1,26 @@
 package io.lightplugins.crit.modules.profiles.api;
 
+import io.lightplugins.crit.modules.profiles.handler.ChatMessage;
+import io.lightplugins.crit.modules.profiles.handler.MessageAttachment;
 import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.SQLDatabase;
 import io.lightplugins.crit.master.LightMaster;
 import io.lightplugins.crit.util.database.model.TableNames;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Date;
+import java.util.*;
 
 @Getter
 public class LightProfileAPI {
 
     private List<UserProfile> userProfiles = new ArrayList<>();
+    @Getter
+    @Setter
+    private Map<String, Long> joinTimes = new HashMap<>();
 
     public void createNewProfile(String uniqueId, String username, boolean currentlyBanned, int coins, long lastSeen, long timeJoined) {
 
@@ -39,7 +43,7 @@ public class LightProfileAPI {
         String sql = "INSERT INTO " + TableNames.USER_DATA.getTableName() +
                 " (uniqueId, username, currentlyBanned, coins, lastSeen, timeJoined) VALUES (?, ?, ?, ?, ?, ?)";
 
-        if(database.insertIntoDatabase(sql,
+        if (database.insertIntoDatabase(sql,
                 userProfile.getUniqueId(),
                 userProfile.getUsername(),
                 userProfile.isCurrentlyBanned(),
@@ -140,6 +144,84 @@ public class LightProfileAPI {
         database.executeSQL(alterTableSql);
     }
 
+    // Methode zum Speichern einer Nachricht
+    public void saveMessage(String messageID, String userID, String messageText, Timestamp timestamp) {
+        LightPrinter.printDebug("Saving message: " + messageID);
+        String sql = "INSERT INTO " + TableNames.CHAT_MESSAGES.getTableName() + " (uuid, messageID, userID, messageText, timestamp) VALUES (?, ?, ?, ?, ?)";
+        try (Connection connection = LightMaster.instance.getDatabase().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            String uuid = UUID.randomUUID().toString();
+            statement.setString(1, uuid);
+            statement.setString(2, messageID);
+            statement.setString(3, userID);
+            statement.setString(4, messageText);
+            statement.setTimestamp(5, timestamp);
+            statement.executeUpdate();
+            LightPrinter.printDebug("Message saved: " + messageID);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Methode zum Speichern eines Anhangs
+    public void saveAttachment(String attachmentID, String messageID, String author, String filePath, String mediaType) {
+        LightPrinter.printDebug("Saving attachment: " + attachmentID);
+        String sql = "INSERT INTO messageAttachments (uuid, attachmentID, messageID, userID, filePath, mediaType) VALUES (?, ?, ?, ?, ?)";
+        try (Connection connection = LightMaster.instance.getDatabase().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            String uuid = UUID.randomUUID().toString();
+            statement.setString(1, uuid);
+            statement.setString(2, attachmentID);
+            statement.setString(3, messageID);
+            statement.setString(4, author);
+            statement.setString(5, filePath);
+            statement.setString(6, mediaType);
+            statement.executeUpdate();
+            LightPrinter.printDebug("Attachment saved: " + attachmentID);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Methode zum Abrufen einer Nachricht
+    public List<ChatMessage> getMessages(String messageID) {
+        List<ChatMessage> messages = new ArrayList<>();
+        String sql = "SELECT * FROM " + TableNames.CHAT_MESSAGES.getTableName() + " WHERE messageID = ? ORDER BY timestamp";
+        try (Connection connection = LightMaster.instance.getDatabase().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, messageID);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String userID = resultSet.getString("userID");
+                String messageText = resultSet.getString("messageText");
+                Timestamp timestamp = resultSet.getTimestamp("timestamp");
+                messages.add(new ChatMessage(messageID, userID, messageText, timestamp));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return messages;
+    }
+
+    // Methode zum Abrufen der Anhänge einer Nachricht
+    public List<MessageAttachment> getAttachments(String messageID) {
+        List<MessageAttachment> attachments = new ArrayList<>();
+        String sql = "SELECT * FROM messageAttachments WHERE messageID = ?";
+        try (Connection connection = LightMaster.instance.getDatabase().getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, messageID);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String attachmentID = resultSet.getString("attachmentID");
+                String filePath = resultSet.getString("filePath");
+                String mediaType = resultSet.getString("mediaType");
+                attachments.add(new MessageAttachment(attachmentID, messageID, filePath, mediaType));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return attachments;
+    }
 }
 
 

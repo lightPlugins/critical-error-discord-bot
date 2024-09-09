@@ -45,7 +45,7 @@ public class PermissionNode {
     }
 
     public static boolean isSupporter(Member member) {
-        Role supporterRole = member.getGuild().getRoleById("1269467265909260360");
+        Role supporterRole = member.getGuild().getRoleById("1135184376838242314");
         return member.getRoles().contains(supporterRole);
     }
 }

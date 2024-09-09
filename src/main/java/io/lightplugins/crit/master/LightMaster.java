@@ -252,9 +252,8 @@ public class LightMaster {
             // final, shutdown the shard manager and exit
             shardManager.shutdown();
             LightPrinter.print("Shut down successful.");
-
+            System.exit(0);
         }
-        System.exit(0);
     }
 
     public static void main(String[] args) {

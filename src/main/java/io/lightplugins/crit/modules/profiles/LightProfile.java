@@ -6,12 +6,14 @@ import io.lightplugins.crit.modules.profiles.commands.AddBirthdayCommand;
 import io.lightplugins.crit.modules.profiles.impl.UserProfile;
 import io.lightplugins.crit.modules.profiles.listener.AddGuildMember;
 import io.lightplugins.crit.modules.profiles.listener.CheckActivity;
+import io.lightplugins.crit.modules.profiles.listener.SaveMessages;
 import io.lightplugins.crit.modules.profiles.manager.BirthdayChecker;
 import io.lightplugins.crit.modules.watchdog.commands.ActiveTimeCommand;
 import io.lightplugins.crit.util.LightPrinter;
 import io.lightplugins.crit.util.database.model.TableNames;
 import io.lightplugins.crit.util.interfaces.LightModule;
 import lombok.Getter;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,6 +32,7 @@ public class LightProfile implements LightModule {
 
     @Getter
     private static LightProfileAPI lightProfileAPI;
+    private final CheckActivity checkActivity = new CheckActivity();
 
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -55,9 +58,32 @@ public class LightProfile implements LightModule {
 
         LightMaster.instance.getDatabase()
                 .createTable(TableNames.CHANNEL_TIME.getTableName(),
-                        "uniqueId VARCHAR(36) PRIMARY KEY, " +
+                        "uniqueId VARCHAR(36), " +
                                 "channelId VARCHAR(36), " +
-                                "activeTime DOUBLE"
+                                "activeTime DOUBLE, " +
+                                "PRIMARY KEY (uniqueId, channelId)"
+                );
+
+        // Erstellen der Tabelle für Chatnachrichten
+        LightMaster.instance.getDatabase()
+                .createTable(TableNames.CHAT_MESSAGES.getTableName(),
+                        "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "messageID VARCHAR(36), " +
+                                "userID VARCHAR(36), " +
+                                "messageText TEXT, " +
+                                "timestamp TIMESTAMP"
+                );
+
+        // Erstellen der Tabelle für Nachrichten anhänge
+        LightMaster.instance.getDatabase()
+                .createTable(TableNames.CHAT_ATTACHMENTS.getTableName(),
+                        "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "attachmentID VARCHAR(36), " +
+                                "messageID VARCHAR(36), " +
+                                "userID VARCHAR(36), " +
+                                "filePath TEXT, " +
+                                "mediaType VARCHAR(50), " +
+                                "FOREIGN KEY (messageID) REFERENCES " + TableNames.CHAT_MESSAGES.getTableName() + "(messageID)"
                 );
 
         lightProfileAPI.syncUserProfilesToRAM();
@@ -66,7 +92,8 @@ public class LightProfile implements LightModule {
                 new AddGuildMember(),
                 new AddBirthdayCommand(),
                 new CheckActivity(),
-                new ActiveTimeCommand()
+                new ActiveTimeCommand(),
+                new SaveMessages()
         );
 
         scheduleSyncToDatabase();
@@ -75,6 +102,9 @@ public class LightProfile implements LightModule {
 
     @Override
     public void disable() {
+        String id = getCurrentGuildId();
+        LightPrinter.printDebug("Guild ID: " + id);
+        checkActivity.saveActiveTimeForAllUsers(LightMaster.instance.getShardManager().getGuildById(id));
         syncToDatabase();
     }
 
@@ -105,9 +135,6 @@ public class LightProfile implements LightModule {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             for (UserProfile userProfile : lightProfileAPI.getUserProfiles()) {
-                if(!userProfile.getActiveTime().isEmpty()) {
-                    LightPrinter.print("Activity of user profiles: " + userProfile.getUsername());
-                }
 
                 userProfile.getActiveTime().forEach((channelId, time) -> {
                     try {
@@ -127,6 +154,16 @@ public class LightProfile implements LightModule {
         } catch (SQLException e) {
             LightPrinter.printError("Could not sync user profiles to database.");
             e.printStackTrace();
+        }
+    }
+
+    public String getCurrentGuildId() {
+        Guild guild = LightMaster.instance.getShardManager().getGuilds().stream().findFirst().orElse(null);
+        if (guild != null) {
+            return guild.getId();
+        } else {
+            LightPrinter.printError("No guilds found.");
+            return null;
         }
     }
 }
