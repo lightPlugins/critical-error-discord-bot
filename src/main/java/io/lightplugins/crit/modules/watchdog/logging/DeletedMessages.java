@@ -48,7 +48,7 @@ public class DeletedMessages extends ListenerAdapter {
         String color = "FF0000";
         String title = "Nachricht gelöscht";
         String description = "Eine Nachricht von #author# wurde in #channel# gelöscht."
-                .replace("#author#", author.getAsMention())
+                .replace("#author#", author.getAsMention() + " (" + author.getEffectiveName() + ")")
                 .replace("#channel#", targetChannel.getAsMention());
         String footer = "Bei Fragen bitte an einen Admin wenden. " +
                 "Aufgrund der Limitierung der Discord API kann nicht angezeigt werde, wer die Nachricht gelöscht hat.";

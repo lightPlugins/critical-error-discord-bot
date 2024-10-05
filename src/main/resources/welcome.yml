@@ -8,7 +8,7 @@ welcome:
     # The title of the embed message
     title: "**Willkommen auf CRIT-E** :tada:"
     # The description of the embed message
-    description: "#mention# ist dem Server beigetreten! Wir freuen uns, dich bei uns zu haben! :blush:"
+    description: "#mention# (#clearname#) ist dem Server beigetreten! Wir freuen uns, dich bei uns zu haben! :blush:"
     # The color of the embed message
     color: "ffdc73"
     # The footer of the embed message

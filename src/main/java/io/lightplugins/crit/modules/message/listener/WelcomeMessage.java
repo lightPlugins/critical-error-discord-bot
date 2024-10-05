@@ -61,7 +61,9 @@ public class WelcomeMessage extends ListenerAdapter {
 
         EmbedBuilder embedBuilder = new EmbedBuilder();
         embedBuilder.setThumbnail(thumbnailURL);
-        embedBuilder.setDescription(description.replace("#mention#", user.getAsMention()));
+        embedBuilder.setDescription(description
+                .replace("#mention#", user.getAsMention())
+                .replace("#clearname#", user.getEffectiveName()));
         embedBuilder.setTitle(title);
         embedBuilder.addField(fieldTitle, "Self Role Channel: " + roleChannel.getAsMention(), inline);
         embedBuilder.setColor(HexFormat.fromHexDigits(color)); // Goldene Farbe für den linken Balken

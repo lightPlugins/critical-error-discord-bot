@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -101,7 +100,7 @@ public class SaveMessages extends ListenerAdapter {
         } catch (ErrorResponseException e) {
             LightPrinter.printWatchdog("Try " + (MAX_RETRIES - retries + 1) + " to save the message.");
             if (e.getErrorCode() == 503 && retries > 0) {
-                scheduleRetry(() -> saveMessageWithRetry(messageID, userID, messageText, timestamp, retries - 1));
+                // scheduleRetry(() -> saveMessageWithRetry(messageID, userID, messageText, timestamp, retries - 1));
             } else {
                 LightPrinter.printError("Failed to save message with " + 3 + "tries: " + e.getMessage());
             }
@@ -115,7 +114,7 @@ public class SaveMessages extends ListenerAdapter {
         } catch (ErrorResponseException e) {
             LightPrinter.printWatchdog("Try " + (MAX_RETRIES - retries + 1) + " to save the message.");
             if (e.getErrorCode() == 503 && retries > 0) {
-                scheduleRetry(() -> saveAttachmentWithRetry(attachmentID, messageID, userID, filePath, mediaType, retries - 1));
+                // scheduleRetry(() -> saveAttachmentWithRetry(attachmentID, messageID, userID, filePath, mediaType, retries - 1));
             } else {
                 LightPrinter.printError("Failed to save message with " + 3 + "tries: " + e.getMessage());
             }

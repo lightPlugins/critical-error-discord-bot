@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -44,7 +45,6 @@ public class JoinGuild extends ListenerAdapter {
             return;
         }
 
-        String executorName = executorMember.getName();
         List<Role> role = event.getRoles();
         Guild guild = event.getGuild();
         TextChannel channel = guild.getTextChannelById(watchdogChannel);
@@ -56,7 +56,7 @@ public class JoinGuild extends ListenerAdapter {
         }
 
         for (Role r : role) {
-            roleAddEmbed(channel, executorName, targetName, r.getName());
+            roleAddEmbed(channel, executorMember, event.getMember().getUser(), r);
         }
 
     }
@@ -98,20 +98,43 @@ public class JoinGuild extends ListenerAdapter {
         }
 
         for (Role r : role) {
-            roleRemoveEmbed(channel, executorName, targetName, r.getName());
+            roleRemoveEmbed(channel, executorMember, targetMember.getUser(), r);
         }
 
     }
 
-    private void roleAddEmbed(TextChannel channel, String executor, String target, String role) {
+    // if a user leaves the guild
+    @Override
+    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+
+        long watchdogChannel =
+                LightWatchdog.instance.getWatchdogConfig().getLong("logging.channelID");
+
+        User user = event.getUser();
+        Guild guild = event.getGuild();
+
+        TextChannel channel = guild.getTextChannelById(watchdogChannel);
+
+        if(channel == null) {
+            LightPrinter.printWatchdog(
+                    "Watchdog channel not found. Please check watchdog.yml for the correct channel id.");
+            return;
+        }
+
+        removeUserEmbed(channel, user);
+
+
+    }
+
+    private void roleAddEmbed(TextChannel channel, User executor, User target, Role role) {
 
         String color = "32D732";
         String title = "Rollenänderung festgestellt";
         String url = "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png";
-        String description = "Der Benutzer **#executor#** hat dem User **#target#** die Rolle **#role#** hinzugefügt."
-                .replace("#executor#", "**" + executor + "**")
-                .replace("#target#", "**" + target + "**")
-                .replace("#role#", "**" + role + "**");
+        String description = "Der Benutzer #executor# hat dem User #target# die Rolle #role# hinzugefügt."
+                .replace("#executor#",  executor.getAsMention() + " (" + executor.getEffectiveName() + ")")
+                .replace("#target#", target.getAsMention() + " (" + target.getEffectiveName() + ")")
+                .replace("#role#", role.getAsMention() + " (" + role.getName() + ")");
         String footer = "Bei Unregelmäßigkeiten bitte an einen Admin wenden.";
 
         LocalDateTime localDateTime = LocalDateTime.now();
@@ -130,15 +153,40 @@ public class JoinGuild extends ListenerAdapter {
 
     }
 
-    private void roleRemoveEmbed(TextChannel channel, String executor, String target, String role) {
+    private void roleRemoveEmbed(TextChannel channel, User executor, User target, Role role) {
 
         String color = "F44336";
         String title = "Rollenänderung festgestellt";
         String url = "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png";
-        String description = "Der Benutzer **#executor#** hat dem User **#target#** die Rolle **#role#** entfernt."
-                .replace("#executor#", "**" + executor + "**")
-                .replace("#target#", "**" + target + "**")
-                .replace("#role#", "**" + role + "**");
+        String description = "Der Benutzer #executor# hat dem User #target# die Rolle #role# entfernt."
+                .replace("#executor#", "**" + executor.getAsMention() + "** (" + executor.getEffectiveName() + ")")
+                .replace("#target#", "**" + target.getAsMention() + "** (" + target.getEffectiveName() + ")")
+                .replace("#role#", "**" + role.getAsMention() + "** (" + role.getName() + ")");
+        String footer = "Bei Unregelmäßigkeiten bitte an einen Admin wenden.";
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        DateTimeFormatter formatedDate = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setThumbnail(url);
+        embedBuilder.setDescription(description);
+        embedBuilder.setTitle(title);
+        embedBuilder.addField("Wann ist das geschehen ?", localDateTime.format(formatedDate), false);
+        embedBuilder.setColor(HexFormat.fromHexDigits(color));
+        embedBuilder.setFooter(footer);
+
+        MessageEmbed roleRemoveEmbed = embedBuilder.build();
+        channel.sendMessageEmbeds(roleRemoveEmbed).queue();
+
+    }
+
+    private void removeUserEmbed(TextChannel channel, User user) {
+
+        String color = "F44336";
+        String title = "Server verlassen";
+        String url = "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png";
+        String description = "Der Benutzer #mention# hat den Server verlassen."
+                .replace("#mention#", "**" + user.getAsMention() + "** (" + user.getEffectiveName() + ")");
         String footer = "Bei Unregelmäßigkeiten bitte an einen Admin wenden.";
 
         LocalDateTime localDateTime = LocalDateTime.now();

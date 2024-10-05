@@ -44,7 +44,7 @@ public class ChangeName extends ListenerAdapter {
         String title = "Namensänderung festgestellt";
         String url = "https://i.ibb.co/pdcPk8D/CRIT-E-Logo-2k-discord.png";
         String description = "Der Benutzer **#member#** hat seinen Namen von **#oldNickname#** zu **#newNickname#** geändert."
-                .replace("#member#", "**" + user.getAsTag() + "**")
+                .replace("#member#",  user.getAsMention() + " (" + user.getEffectiveName() + ")")
                 .replace("#oldNickname#", "**" + oldNickname + "**")
                 .replace("#newNickname#", "**" + newNickname + "**");
         String footer = "Bei Unregelmäßigkeiten bitte an einen Admin wenden.";
